@@ -1,5 +1,5 @@
 import pytest
-from agentguard.rules.base import Rule
+from agentguard.rules.base import Rule, resolve_field
 
 
 def test_rule_is_abstract():
@@ -41,3 +41,23 @@ def test_rule_subclass_with_evaluate():
     rule = DummyRule()
     assert rule.tier == 1
     assert rule.rule_name == "dummy"
+
+
+class TestResolveField:
+    def test_top_level_field(self):
+        assert resolve_field({"amount": 100}, "amount") == 100
+
+    def test_nested_field(self):
+        assert resolve_field({"data": {"refund": {"amount": 50}}}, "data.refund.amount") == 50
+
+    def test_missing_field(self):
+        assert resolve_field({"other": 1}, "amount") is None
+
+    def test_missing_nested_field(self):
+        assert resolve_field({"data": {}}, "data.refund.amount") is None
+
+    def test_non_dict_intermediate(self):
+        assert resolve_field({"data": "string"}, "data.inner") is None
+
+    def test_none_value(self):
+        assert resolve_field({"amount": None}, "amount") is None

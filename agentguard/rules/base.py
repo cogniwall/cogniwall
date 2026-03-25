@@ -47,3 +47,19 @@ def _collect_strings(obj: object, acc: list[str]) -> None:
     elif isinstance(obj, list):
         for item in obj:
             _collect_strings(item, acc)
+
+
+def resolve_field(payload: dict, field_path: str) -> object:
+    """Resolve a dot-notation field path in a nested dict.
+
+    Returns None if any segment is missing or not a dict.
+    Shared utility used by financial, tone/sentiment, and rate limit rules.
+    """
+    current = payload
+    for segment in field_path.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(segment)
+        if current is None:
+            return None
+    return current

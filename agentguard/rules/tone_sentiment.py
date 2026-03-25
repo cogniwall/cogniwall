@@ -106,5 +106,6 @@ class ToneSentimentRule(Rule):
             custom=config.get("custom", []),
             provider=config.get("provider", "anthropic"),
             model=config.get("model", "claude-haiku-4-5-20251001"),
+            api_key=config.get("api_key"),
             api_key_env=config.get("api_key_env"),
         )

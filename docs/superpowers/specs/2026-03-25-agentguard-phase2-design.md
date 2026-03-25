@@ -165,7 +165,7 @@ guard = AgentGuard(rules=[
 ### Constraints
 
 - Custom rules are **Python-only** — no YAML `type:` registration for user-defined rules
-- `from_config` is optional for custom rules (only needed if you want YAML support, which requires forking config.py)
+- `from_config` must be implemented (it's `@abstractmethod` on `Rule`), but custom rules can provide a minimal stub that just returns `cls()`. This is required by the ABC contract but irrelevant for Python-only usage.
 
 ## 4. Shared Utility Refactor
 

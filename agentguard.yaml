@@ -20,6 +20,22 @@ rules:
     field: amount
     max: 100
 
+  # Block unwanted tone in AI-generated content
+  # Requires: pip install agentguard[anthropic] or agentguard[openai]
+  # - type: tone_sentiment
+  #   field: body
+  #   block: [angry, sarcastic, apologetic]
+  #   custom: ["sounds legally liable"]
+  #   provider: anthropic
+  #   model: claude-haiku-4-5-20251001
+  #   api_key_env: ANTHROPIC_API_KEY
+
+  # Rate limit actions per user/agent
+  # - type: rate_limit
+  #   max_actions: 5
+  #   window_seconds: 3600
+  #   key_field: user_id
+
   # Detect prompt injection attacks
   # Requires: pip install agentguard[anthropic] or agentguard[openai]
   # - type: prompt_injection

@@ -9,6 +9,8 @@ from agentguard.rules.base import Rule
 from agentguard.rules.financial import FinancialLimitRule
 from agentguard.rules.pii import PiiDetectionRule
 from agentguard.rules.prompt_injection import PromptInjectionRule
+from agentguard.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
+from agentguard.rules.rate_limit import RateLimitRule
 
 
 class AgentGuardConfigError(Exception):
@@ -20,6 +22,8 @@ _RULE_REGISTRY: dict[str, type[Rule]] = {
     "pii_detection": PiiDetectionRule,
     "financial_limit": FinancialLimitRule,
     "prompt_injection": PromptInjectionRule,
+    "tone_sentiment": ToneSentimentRule,
+    "rate_limit": RateLimitRule,
 }
 
 _VALID_ON_ERROR = {"error", "block", "approve"}
@@ -89,4 +93,34 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
         if "min" in config and config["min"] is not None and config["min"] < 0:
             raise AgentGuardConfigError(
                 f"financial_limit 'min' must be non-negative, got {config['min']}"
+            )
+    elif rule_type == "tone_sentiment":
+        if "field" not in config:
+            raise AgentGuardConfigError(
+                "tone_sentiment rule requires 'field' parameter"
+            )
+        block = config.get("block", [])
+        custom = config.get("custom", [])
+        if not block and not custom:
+            raise AgentGuardConfigError(
+                "tone_sentiment rule requires at least one of 'block' or 'custom'"
+            )
+        for preset in block:
+            if preset not in VALID_PRESETS:
+                raise AgentGuardConfigError(
+                    f"Invalid tone preset '{preset}'. "
+                    f"Available presets: {sorted(VALID_PRESETS)}"
+                )
+    elif rule_type == "rate_limit":
+        if "max_actions" not in config:
+            raise AgentGuardConfigError(
+                "rate_limit rule requires 'max_actions' parameter"
+            )
+        if "window_seconds" not in config:
+            raise AgentGuardConfigError(
+                "rate_limit rule requires 'window_seconds' parameter"
+            )
+        if config["window_seconds"] <= 0:
+            raise AgentGuardConfigError(
+                f"rate_limit 'window_seconds' must be positive, got {config['window_seconds']}"
             )

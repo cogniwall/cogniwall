@@ -5,7 +5,7 @@ import re
 # SSN formats: 123-45-6789, 123 45 6789, 123456789
 # Area number (first 3) cannot be 000, 666, or 900-999
 _SSN_PATTERN = re.compile(
-    r"\b(?!000|666)"         # area number restrictions (000 and 666 invalid)
+    r"\b(?!000|666|9\d{2})"  # area number restrictions (000, 666, 900-999 invalid)
     r"(\d{3})"               # area number
     r"([-\s]?)"              # separator (dash, space, or none)
     r"(?!00)\d{2}"           # group number (not 00)

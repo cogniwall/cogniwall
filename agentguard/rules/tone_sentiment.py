@@ -35,13 +35,14 @@ class ToneSentimentRule(Rule):
 
         try:
             matched_tone = await self._call_llm(value)
-            if matched_tone.upper() == "NONE":
-                return Verdict.approved()
-            return Verdict.blocked(
-                rule=self.rule_name,
-                reason=f"Tone detected: {matched_tone}",
-                details={"tone": matched_tone, "field": self.field},
-            )
+            all_tones = self.block + self.custom
+            if matched_tone in all_tones:
+                return Verdict.blocked(
+                    rule=self.rule_name,
+                    reason=f"Tone detected: {matched_tone}",
+                    details={"tone": matched_tone, "field": self.field},
+                )
+            return Verdict.approved()
         except Exception as exc:
             return Verdict.error(rule=self.rule_name, error=exc)
 

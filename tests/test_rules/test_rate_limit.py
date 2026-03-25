@@ -1,5 +1,4 @@
 import asyncio
-import time
 
 import pytest
 from agentguard.rules.rate_limit import RateLimitRule

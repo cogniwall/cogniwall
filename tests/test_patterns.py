@@ -20,9 +20,13 @@ class TestSSNPattern:
         """000 area number is invalid."""
         assert find_ssns("000-45-6789") == []
 
+    def test_invalid_ssn_900_area(self):
+        """900-999 area numbers are invalid."""
+        assert find_ssns("987-65-4321") == []
+
     def test_multiple_ssns(self):
-        text = "SSNs: 123-45-6789 and 987-65-4321"
-        assert find_ssns(text) == ["123-45-6789", "987-65-4321"]
+        text = "SSNs: 123-45-6789 and 321-65-4321"
+        assert find_ssns(text) == ["123-45-6789", "321-65-4321"]
 
 
 class TestCreditCardPattern:

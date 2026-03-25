@@ -39,6 +39,9 @@ class RateLimitRule(Rule):
             timestamps = self._timestamps.get(key, [])
             timestamps = [t for t in timestamps if t > cutoff]
 
+            if not timestamps and key in self._timestamps:
+                del self._timestamps[key]
+
             if len(timestamps) >= self.max_actions:
                 self._timestamps[key] = timestamps
                 return Verdict.blocked(

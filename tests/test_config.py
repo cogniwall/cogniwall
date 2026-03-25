@@ -54,3 +54,71 @@ class TestConfigValidation:
                 "version": "1",
                 "rules": [{"type": "financial_limit", "field": "amount", "max": -50}],
             })
+
+
+class TestToneSentimentValidation:
+    def test_missing_field(self):
+        from agentguard.config import parse_config
+        with pytest.raises(AgentGuardConfigError, match="field"):
+            parse_config({
+                "version": "1",
+                "rules": [{"type": "tone_sentiment", "block": ["angry"]}],
+            })
+
+    def test_invalid_preset(self):
+        from agentguard.config import parse_config
+        with pytest.raises(AgentGuardConfigError, match="invalid_tone"):
+            parse_config({
+                "version": "1",
+                "rules": [{"type": "tone_sentiment", "field": "body", "block": ["invalid_tone"]}],
+            })
+
+    def test_no_block_or_custom(self):
+        from agentguard.config import parse_config
+        with pytest.raises(AgentGuardConfigError, match="block.*custom"):
+            parse_config({
+                "version": "1",
+                "rules": [{"type": "tone_sentiment", "field": "body"}],
+            })
+
+    def test_valid_config(self):
+        from agentguard.config import parse_config
+        result = parse_config({
+            "version": "1",
+            "rules": [{"type": "tone_sentiment", "field": "body", "block": ["angry"], "custom": ["legally liable"]}],
+        })
+        assert len(result["rules"]) == 1
+
+
+class TestRateLimitValidation:
+    def test_missing_max_actions(self):
+        from agentguard.config import parse_config
+        with pytest.raises(AgentGuardConfigError, match="max_actions"):
+            parse_config({
+                "version": "1",
+                "rules": [{"type": "rate_limit", "window_seconds": 60}],
+            })
+
+    def test_missing_window_seconds(self):
+        from agentguard.config import parse_config
+        with pytest.raises(AgentGuardConfigError, match="window_seconds"):
+            parse_config({
+                "version": "1",
+                "rules": [{"type": "rate_limit", "max_actions": 5}],
+            })
+
+    def test_negative_window(self):
+        from agentguard.config import parse_config
+        with pytest.raises(AgentGuardConfigError, match="window_seconds"):
+            parse_config({
+                "version": "1",
+                "rules": [{"type": "rate_limit", "max_actions": 5, "window_seconds": -1}],
+            })
+
+    def test_valid_config(self):
+        from agentguard.config import parse_config
+        result = parse_config({
+            "version": "1",
+            "rules": [{"type": "rate_limit", "max_actions": 5, "window_seconds": 3600}],
+        })
+        assert len(result["rules"]) == 1

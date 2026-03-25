@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentguard"
+version = "0.1.0"
+description = "A programmable firewall for autonomous AI agents"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40.0"]
+openai = ["openai>=1.50.0"]
+presidio = ["presidio-analyzer>=2.2"]
+all = ["agentguard[anthropic,openai,presidio]"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "live_llm: requires a live LLM API key (skipped by default)",
+]

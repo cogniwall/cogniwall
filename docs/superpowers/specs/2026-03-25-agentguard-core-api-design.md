@@ -177,7 +177,7 @@ Classifies whether user input contains prompt injection attempts.
 **Capabilities:**
 - Regex pre-filter: catches known patterns ("ignore previous instructions", etc.) — blocks immediately without an LLM call
 - LLM fallback: for inputs passing the pre-filter, sends to a fast LLM with a classification prompt
-- Configurable provider/model: developer provides their own API key
+- Configurable provider/model: developer provides their own API key. MVP supports both `anthropic` and `openai` providers.
 
 **Config:**
 ```yaml
@@ -322,4 +322,4 @@ Marked with `@pytest.mark.live_llm`, skipped by default. Developers run locally 
 - User/API key management
 - Hosted SaaS API wrapper
 - Tone/sentiment veto guardrail
-- Custom Python rule interface (deferred — YAML-only for MVP)
+- Custom Python rule authoring (developer-defined Rule subclasses — deferred for MVP; the built-in Python API for configuring rules is in scope)

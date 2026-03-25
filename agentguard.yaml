@@ -1,0 +1,28 @@
+# AgentGuard example configuration
+# Copy this file and customize for your project.
+
+version: "1"
+
+# How to handle errors from LLM-based rules:
+#   "error"   - return error verdict (default, developer handles it)
+#   "block"   - treat errors as blocks (fail-closed, recommended for production)
+#   "approve" - treat errors as approvals (fail-open)
+on_error: error
+
+rules:
+  # Block payloads containing PII
+  - type: pii_detection
+    block: [ssn, credit_card]
+    # custom_terms: ["Project Titan", "internal-api-key"]
+
+  # Block financial amounts over threshold
+  - type: financial_limit
+    field: amount
+    max: 100
+
+  # Detect prompt injection attacks
+  # Requires: pip install agentguard[anthropic] or agentguard[openai]
+  # - type: prompt_injection
+  #   provider: anthropic
+  #   model: claude-haiku-4-5-20251001
+  #   api_key_env: ANTHROPIC_API_KEY

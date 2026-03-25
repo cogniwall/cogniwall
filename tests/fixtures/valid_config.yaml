@@ -1,0 +1,17 @@
+version: "1"
+
+on_error: block
+
+rules:
+  - type: pii_detection
+    block: [ssn, credit_card]
+    custom_terms: ["Project Titan"]
+
+  - type: financial_limit
+    field: amount
+    max: 100
+
+  - type: prompt_injection
+    provider: anthropic
+    model: claude-haiku-4-5-20251001
+    api_key_env: ANTHROPIC_API_KEY

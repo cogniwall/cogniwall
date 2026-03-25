@@ -19,7 +19,7 @@
 | `pyproject.toml` | Package metadata, dependencies, pytest config |
 | `agentguard/__init__.py` | Public exports: `AgentGuard`, `Verdict`, rule classes |
 | `agentguard/verdict.py` | `Verdict` dataclass |
-| `agentguard/rules/base.py` | `Rule` ABC, tier registration |
+| `agentguard/rules/base.py` | `Rule` ABC, tier registration, shared `extract_strings` utility |
 | `agentguard/rules/__init__.py` | Rule registry, exports |
 | `agentguard/patterns/ssn.py` | SSN regex patterns |
 | `agentguard/patterns/credit_card.py` | CC patterns + Luhn validation |
@@ -345,6 +345,27 @@ class Rule(ABC):
     def from_config(cls, config: dict) -> Rule:
         """Construct a rule instance from a YAML/dict config."""
         ...
+
+
+def extract_strings(obj: object) -> list[str]:
+    """Recursively extract all string values from nested dicts/lists.
+
+    Shared utility used by PII and prompt injection rules.
+    """
+    results: list[str] = []
+    _collect_strings(obj, results)
+    return results
+
+
+def _collect_strings(obj: object, acc: list[str]) -> None:
+    if isinstance(obj, str):
+        acc.append(obj)
+    elif isinstance(obj, dict):
+        for value in obj.values():
+            _collect_strings(value, acc)
+    elif isinstance(obj, list):
+        for item in obj:
+            _collect_strings(item, acc)
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -722,7 +743,7 @@ Expected: FAIL — `ImportError`
 from __future__ import annotations
 
 from agentguard.patterns import find_credit_cards, find_emails, find_phones, find_ssns
-from agentguard.rules.base import Rule
+from agentguard.rules.base import Rule, extract_strings
 from agentguard.verdict import Verdict
 
 _SCANNERS: dict[str, callable] = {
@@ -746,7 +767,7 @@ class PiiDetectionRule(Rule):
         self.custom_terms = custom_terms or []
 
     async def evaluate(self, payload: dict) -> Verdict:
-        texts = list(_extract_strings(payload))
+        texts = extract_strings(payload)
         if not texts:
             return Verdict.approved()
 
@@ -781,18 +802,6 @@ class PiiDetectionRule(Rule):
             block=config.get("block", []),
             custom_terms=config.get("custom_terms", []),
         )
-
-
-def _extract_strings(obj: object) -> list[str]:
-    """Recursively extract all string values from nested dicts/lists."""
-    if isinstance(obj, str):
-        yield obj
-    elif isinstance(obj, dict):
-        for value in obj.values():
-            yield from _extract_strings(value)
-    elif isinstance(obj, list):
-        for item in obj:
-            yield from _extract_strings(item)
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -1047,7 +1056,7 @@ from __future__ import annotations
 
 import re
 
-from agentguard.rules.base import Rule
+from agentguard.rules.base import Rule, extract_strings
 from agentguard.verdict import Verdict
 
 _INJECTION_PATTERNS = [
@@ -1080,7 +1089,7 @@ class PromptInjectionRule(Rule):
         self.api_key_env = api_key_env
 
     async def evaluate(self, payload: dict) -> Verdict:
-        texts = list(_extract_strings(payload))
+        texts = extract_strings(payload)
         if not texts:
             return Verdict.approved()
 
@@ -1175,18 +1184,6 @@ class PromptInjectionRule(Rule):
             model=config.get("model", "claude-haiku-4-5-20251001"),
             api_key_env=config.get("api_key_env"),
         )
-
-
-def _extract_strings(obj: object):
-    """Recursively extract all string values from nested dicts/lists."""
-    if isinstance(obj, str):
-        yield obj
-    elif isinstance(obj, dict):
-        for value in obj.values():
-            yield from _extract_strings(value)
-    elif isinstance(obj, list):
-        for item in obj:
-            yield from _extract_strings(item)
 ```
 
 - [ ] **Step 4: Run regex pre-filter tests to verify they pass**

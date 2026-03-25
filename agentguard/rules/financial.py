@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from agentguard.rules.base import Rule
+from agentguard.rules.base import Rule, resolve_field
 from agentguard.verdict import Verdict
 
 
@@ -19,7 +19,7 @@ class FinancialLimitRule(Rule):
         self.min_value = min
 
     async def evaluate(self, payload: dict) -> Verdict:
-        value = _resolve_field(payload, self.field)
+        value = resolve_field(payload, self.field)
         if value is None:
             return Verdict.approved()
 
@@ -49,18 +49,3 @@ class FinancialLimitRule(Rule):
             max=config.get("max"),
             min=config.get("min"),
         )
-
-
-def _resolve_field(payload: dict, field_path: str) -> object:
-    """Resolve a dot-notation field path in a nested dict.
-
-    Returns None if any segment is missing or not a dict.
-    """
-    current = payload
-    for segment in field_path.split("."):
-        if not isinstance(current, dict):
-            return None
-        current = current.get(segment)
-        if current is None:
-            return None
-    return current

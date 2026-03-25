@@ -41,7 +41,7 @@ class PromptInjectionRule(Rule):
 
         combined = "\n".join(texts)
 
-        # Tier 1: regex pre-filter
+        # Stage 1: regex pre-filter
         for pattern in _INJECTION_PATTERNS:
             if pattern.search(combined):
                 return Verdict.blocked(
@@ -53,7 +53,7 @@ class PromptInjectionRule(Rule):
                     },
                 )
 
-        # Tier 2: LLM classification
+        # Stage 2: LLM classification
         return await self._llm_classify(combined)
 
     async def _llm_classify(self, text: str) -> Verdict:

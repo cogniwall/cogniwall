@@ -2,10 +2,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-from agentguard.guard import AgentGuard
-from agentguard.verdict import Verdict
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.financial import FinancialLimitRule
+from agentguard import AgentGuard, Verdict, PiiDetectionRule, FinancialLimitRule
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

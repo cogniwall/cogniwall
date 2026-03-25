@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from agentguard.patterns import find_credit_cards, find_emails, find_phones, find_ssns
 from agentguard.rules.base import Rule, extract_strings
 from agentguard.verdict import Verdict
 
-_SCANNERS: dict[str, callable] = {
+_SCANNERS: dict[str, Callable[[str], list[str]]] = {
     "ssn": find_ssns,
     "credit_card": find_credit_cards,
     "email": find_emails,

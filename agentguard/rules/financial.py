@@ -23,7 +23,7 @@ class FinancialLimitRule(Rule):
         if value is None:
             return Verdict.approved()
 
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             return Verdict.approved()
 
         if self.max_value is not None and value > self.max_value:

@@ -1,8 +1,8 @@
-# AgentGuard Core API & Guardrail Modules — Design Spec
+# CogniWall Core API & Guardrail Modules — Design Spec
 
 ## Overview
 
-AgentGuard is a Python library (`pip install agentguard`) that acts as a programmable firewall for autonomous AI agents. It intercepts payloads before they reach external APIs and evaluates them against developer-configured rules to detect PII leaks, financial limit violations, and prompt injection attacks.
+CogniWall is a Python library (`pip install cogniwall`) that acts as a programmable firewall for autonomous AI agents. It intercepts payloads before they reach external APIs and evaluates them against developer-configured rules to detect PII leaks, financial limit violations, and prompt injection attacks.
 
 This spec covers the first sub-project: the core evaluation API and three MVP guardrail modules. The audit dashboard and user management are separate follow-up sub-projects.
 
@@ -23,13 +23,13 @@ This spec covers the first sub-project: the core evaluation API and three MVP gu
 ### Initialization
 
 ```python
-from agentguard import AgentGuard
+from cogniwall import CogniWall
 
 # From YAML config
-guard = AgentGuard.from_yaml("agentguard.yaml")
+guard = CogniWall.from_yaml("cogniwall.yaml")
 
 # From Python
-guard = AgentGuard(
+guard = CogniWall(
     rules=[
         PiiDetectionRule(block=["ssn", "credit_card", "email"]),
         FinancialLimitRule(max_amount=100, field="amount"),
@@ -76,7 +76,7 @@ class Verdict:
 ```
 
 - `evaluate()` is sync by default, `evaluate_async()` for async contexts.
-- The payload is an arbitrary `dict`. AgentGuard inspects the values, not the structure.
+- The payload is an arbitrary `dict`. CogniWall inspects the values, not the structure.
 - YAML and Python config are interchangeable — YAML deserializes into the same rule objects.
 
 ## 2. Tiered Pipeline Engine
@@ -211,14 +211,14 @@ rules:
     api_key_env: ANTHROPIC_API_KEY
 ```
 
-Rules are validated at load time. Unknown types, missing required fields, or invalid values raise `AgentGuardConfigError` with clear messages.
+Rules are validated at load time. Unknown types, missing required fields, or invalid values raise `CogniWallConfigError` with clear messages.
 
 ## 5. Package Structure
 
 ```
-agentguard/
-├── __init__.py          # exports AgentGuard, Verdict
-├── guard.py             # AgentGuard class — from_yaml(), evaluate(), evaluate_async()
+cogniwall/
+├── __init__.py          # exports CogniWall, Verdict
+├── guard.py             # CogniWall class — from_yaml(), evaluate(), evaluate_async()
 ├── pipeline.py          # Pipeline engine — tier sorting, parallel execution
 ├── verdict.py           # Verdict dataclass
 ├── config.py            # YAML loading, validation, schema
@@ -245,14 +245,14 @@ tests/
 └── fixtures/            # sample payloads, configs
 
 pyproject.toml
-agentguard.yaml          # example config
+cogniwall.yaml          # example config
 ```
 
 ## 6. Error Handling
 
 ### Configuration Errors (Fail Fast)
 
-Raised at load time as `AgentGuardConfigError`:
+Raised at load time as `CogniWallConfigError`:
 - Unknown rule type
 - Missing required fields
 - Invalid values (e.g., negative thresholds)

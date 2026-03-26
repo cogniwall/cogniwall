@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from agentguard.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
 
 
 @pytest.fixture

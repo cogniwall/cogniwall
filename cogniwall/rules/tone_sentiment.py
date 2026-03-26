@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from agentguard.rules.base import Rule, resolve_field
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule, resolve_field
+from cogniwall.verdict import Verdict
 
 VALID_PRESETS = frozenset({"angry", "sarcastic", "apologetic", "threatening", "dismissive"})
 

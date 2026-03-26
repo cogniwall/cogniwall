@@ -1,6 +1,6 @@
-from agentguard.patterns.ssn import find_ssns
-from agentguard.patterns.credit_card import find_credit_cards
-from agentguard.patterns.common import find_emails, find_phones
+from cogniwall.patterns.ssn import find_ssns
+from cogniwall.patterns.credit_card import find_credit_cards
+from cogniwall.patterns.common import find_emails, find_phones
 
 
 class TestSSNPattern:

@@ -1,7 +1,7 @@
 import pytest
-from agentguard.pipeline import Pipeline
-from agentguard.verdict import Verdict
-from agentguard.rules.base import Rule
+from cogniwall.pipeline import Pipeline
+from cogniwall.verdict import Verdict
+from cogniwall.rules.base import Rule
 
 
 class AlwaysApproveRule(Rule):

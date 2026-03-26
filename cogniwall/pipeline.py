@@ -5,8 +5,8 @@ import time
 from collections import defaultdict
 from typing import Literal
 
-from agentguard.rules.base import Rule
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule
+from cogniwall.verdict import Verdict
 
 
 class Pipeline:

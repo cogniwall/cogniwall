@@ -1,5 +1,5 @@
 import pytest
-from agentguard.rules.pii import PiiDetectionRule
+from cogniwall.rules.pii import PiiDetectionRule
 
 
 @pytest.fixture

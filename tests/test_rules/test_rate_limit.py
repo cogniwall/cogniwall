@@ -1,7 +1,7 @@
 import asyncio
 
 import pytest
-from agentguard.rules.rate_limit import RateLimitRule
+from cogniwall.rules.rate_limit import RateLimitRule
 
 
 class TestRateLimitRule:

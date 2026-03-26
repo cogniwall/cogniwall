@@ -1,4 +1,4 @@
-# AgentGuard Core API Implementation Plan
+# CogniWall Core API Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+, pytest, pytest-asyncio, pyyaml, anthropic SDK, openai SDK
 
-**Spec:** `docs/superpowers/specs/2026-03-25-agentguard-core-api-design.md`
+**Spec:** `docs/superpowers/specs/2026-03-25-cogniwall-core-api-design.md`
 
 ---
 
@@ -17,20 +17,20 @@
 | File | Responsibility |
 |------|---------------|
 | `pyproject.toml` | Package metadata, dependencies, pytest config |
-| `agentguard/__init__.py` | Public exports: `AgentGuard`, `Verdict`, rule classes |
-| `agentguard/verdict.py` | `Verdict` dataclass |
-| `agentguard/rules/base.py` | `Rule` ABC, tier registration, shared `extract_strings` utility |
-| `agentguard/rules/__init__.py` | Rule registry, exports |
-| `agentguard/patterns/ssn.py` | SSN regex patterns |
-| `agentguard/patterns/credit_card.py` | CC patterns + Luhn validation |
-| `agentguard/patterns/common.py` | Email, phone patterns |
-| `agentguard/patterns/__init__.py` | Pattern exports |
-| `agentguard/rules/pii.py` | `PiiDetectionRule` |
-| `agentguard/rules/financial.py` | `FinancialLimitRule` |
-| `agentguard/rules/prompt_injection.py` | `PromptInjectionRule` |
-| `agentguard/pipeline.py` | `Pipeline` engine — tiered parallel execution |
-| `agentguard/config.py` | YAML loading, validation, rule construction |
-| `agentguard/guard.py` | `AgentGuard` class — `from_yaml()`, `evaluate()`, `evaluate_async()` |
+| `cogniwall/__init__.py` | Public exports: `CogniWall`, `Verdict`, rule classes |
+| `cogniwall/verdict.py` | `Verdict` dataclass |
+| `cogniwall/rules/base.py` | `Rule` ABC, tier registration, shared `extract_strings` utility |
+| `cogniwall/rules/__init__.py` | Rule registry, exports |
+| `cogniwall/patterns/ssn.py` | SSN regex patterns |
+| `cogniwall/patterns/credit_card.py` | CC patterns + Luhn validation |
+| `cogniwall/patterns/common.py` | Email, phone patterns |
+| `cogniwall/patterns/__init__.py` | Pattern exports |
+| `cogniwall/rules/pii.py` | `PiiDetectionRule` |
+| `cogniwall/rules/financial.py` | `FinancialLimitRule` |
+| `cogniwall/rules/prompt_injection.py` | `PromptInjectionRule` |
+| `cogniwall/pipeline.py` | `Pipeline` engine — tiered parallel execution |
+| `cogniwall/config.py` | YAML loading, validation, rule construction |
+| `cogniwall/guard.py` | `CogniWall` class — `from_yaml()`, `evaluate()`, `evaluate_async()` |
 | `tests/test_verdict.py` | Verdict dataclass tests |
 | `tests/test_rules/test_pii.py` | PII rule tests |
 | `tests/test_rules/test_financial.py` | Financial rule tests |
@@ -39,7 +39,7 @@
 | `tests/test_config.py` | YAML config loading/validation tests |
 | `tests/test_guard.py` | Integration tests — full evaluate() flow |
 | `tests/fixtures/` | Sample YAML configs and payloads |
-| `agentguard.yaml` | Example config for users |
+| `cogniwall.yaml` | Example config for users |
 
 ---
 
@@ -47,9 +47,9 @@
 
 **Files:**
 - Create: `pyproject.toml`
-- Create: `agentguard/__init__.py`
-- Create: `agentguard/rules/__init__.py`
-- Create: `agentguard/patterns/__init__.py`
+- Create: `cogniwall/__init__.py`
+- Create: `cogniwall/rules/__init__.py`
+- Create: `cogniwall/patterns/__init__.py`
 - Create: `tests/__init__.py`
 - Create: `tests/test_rules/__init__.py`
 - Create: `tests/fixtures/`
@@ -62,7 +62,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.backends"
 
 [project]
-name = "agentguard"
+name = "cogniwall"
 version = "0.1.0"
 description = "A programmable firewall for autonomous AI agents"
 requires-python = ">=3.11"
@@ -74,7 +74,7 @@ dependencies = [
 anthropic = ["anthropic>=0.40.0"]
 openai = ["openai>=1.50.0"]
 presidio = ["presidio-analyzer>=2.2"]
-all = ["agentguard[anthropic,openai,presidio]"]
+all = ["cogniwall[anthropic,openai,presidio]"]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
@@ -89,17 +89,17 @@ markers = [
 
 - [ ] **Step 2: Create empty package init files**
 
-`agentguard/__init__.py`:
+`cogniwall/__init__.py`:
 ```python
-"""AgentGuard — a programmable firewall for autonomous AI agents."""
+"""CogniWall — a programmable firewall for autonomous AI agents."""
 ```
 
-`agentguard/rules/__init__.py`:
+`cogniwall/rules/__init__.py`:
 ```python
 """Guardrail rule implementations."""
 ```
 
-`agentguard/patterns/__init__.py`:
+`cogniwall/patterns/__init__.py`:
 ```python
 """PII detection patterns."""
 ```
@@ -119,7 +119,7 @@ Expected: 0 tests collected, no errors
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pyproject.toml agentguard/ tests/
+git add pyproject.toml cogniwall/ tests/
 git commit -m "feat: scaffold project structure with pyproject.toml"
 ```
 
@@ -128,14 +128,14 @@ git commit -m "feat: scaffold project structure with pyproject.toml"
 ### Task 2: Verdict Dataclass
 
 **Files:**
-- Create: `agentguard/verdict.py`
+- Create: `cogniwall/verdict.py`
 - Create: `tests/test_verdict.py`
 
 - [ ] **Step 1: Write the failing tests**
 
 `tests/test_verdict.py`:
 ```python
-from agentguard.verdict import Verdict
+from cogniwall.verdict import Verdict
 
 
 def test_approved_verdict():
@@ -184,7 +184,7 @@ Expected: FAIL — `ImportError: cannot import name 'Verdict'`
 
 - [ ] **Step 3: Implement Verdict**
 
-`agentguard/verdict.py`:
+`cogniwall/verdict.py`:
 ```python
 from __future__ import annotations
 
@@ -247,7 +247,7 @@ Expected: 3 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add agentguard/verdict.py tests/test_verdict.py
+git add cogniwall/verdict.py tests/test_verdict.py
 git commit -m "feat: add Verdict dataclass with approved/blocked/error constructors"
 ```
 
@@ -256,15 +256,15 @@ git commit -m "feat: add Verdict dataclass with approved/blocked/error construct
 ### Task 3: Rule Base Class
 
 **Files:**
-- Create: `agentguard/rules/base.py`
-- Modify: `agentguard/rules/__init__.py`
+- Create: `cogniwall/rules/base.py`
+- Modify: `cogniwall/rules/__init__.py`
 
 - [ ] **Step 1: Write the failing test**
 
 `tests/test_rules/test_base.py`:
 ```python
 import pytest
-from agentguard.rules.base import Rule
+from cogniwall.rules.base import Rule
 
 
 def test_rule_is_abstract():
@@ -290,7 +290,7 @@ def test_rule_subclass_must_implement_evaluate():
 
 def test_rule_subclass_with_evaluate():
     """Subclass that implements all abstract methods can be instantiated."""
-    from agentguard.verdict import Verdict
+    from cogniwall.verdict import Verdict
 
     class DummyRule(Rule):
         tier = 1
@@ -315,13 +315,13 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement Rule ABC**
 
-`agentguard/rules/base.py`:
+`cogniwall/rules/base.py`:
 ```python
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from agentguard.verdict import Verdict
+from cogniwall.verdict import Verdict
 
 
 class Rule(ABC):
@@ -376,7 +376,7 @@ Expected: 3 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add agentguard/rules/base.py tests/test_rules/test_base.py
+git add cogniwall/rules/base.py tests/test_rules/test_base.py
 git commit -m "feat: add Rule ABC with tier and rule_name attributes"
 ```
 
@@ -385,17 +385,17 @@ git commit -m "feat: add Rule ABC with tier and rule_name attributes"
 ### Task 4: PII Patterns
 
 **Files:**
-- Create: `agentguard/patterns/ssn.py`
-- Create: `agentguard/patterns/credit_card.py`
-- Create: `agentguard/patterns/common.py`
-- Modify: `agentguard/patterns/__init__.py`
+- Create: `cogniwall/patterns/ssn.py`
+- Create: `cogniwall/patterns/credit_card.py`
+- Create: `cogniwall/patterns/common.py`
+- Modify: `cogniwall/patterns/__init__.py`
 - Create: `tests/test_patterns.py`
 
 - [ ] **Step 1: Write the failing tests for SSN patterns**
 
 `tests/test_patterns.py`:
 ```python
-from agentguard.patterns.ssn import find_ssns
+from cogniwall.patterns.ssn import find_ssns
 
 
 class TestSSNPattern:
@@ -427,7 +427,7 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement SSN patterns**
 
-`agentguard/patterns/ssn.py`:
+`cogniwall/patterns/ssn.py`:
 ```python
 from __future__ import annotations
 
@@ -460,7 +460,7 @@ Expected: 6 passed
 
 Add to `tests/test_patterns.py`:
 ```python
-from agentguard.patterns.credit_card import find_credit_cards
+from cogniwall.patterns.credit_card import find_credit_cards
 
 
 class TestCreditCardPattern:
@@ -495,7 +495,7 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 7: Implement credit card patterns**
 
-`agentguard/patterns/credit_card.py`:
+`cogniwall/patterns/credit_card.py`:
 ```python
 from __future__ import annotations
 
@@ -545,7 +545,7 @@ Expected: 7 passed
 
 Add to `tests/test_patterns.py`:
 ```python
-from agentguard.patterns.common import find_emails, find_phones
+from cogniwall.patterns.common import find_emails, find_phones
 
 
 class TestEmailPattern:
@@ -581,7 +581,7 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 11: Implement email and phone patterns**
 
-`agentguard/patterns/common.py`:
+`cogniwall/patterns/common.py`:
 ```python
 from __future__ import annotations
 
@@ -615,14 +615,14 @@ def find_phones(text: str) -> list[str]:
 Run: `pytest tests/test_patterns.py -v`
 Expected: all passed
 
-- [ ] **Step 13: Update `agentguard/patterns/__init__.py`**
+- [ ] **Step 13: Update `cogniwall/patterns/__init__.py`**
 
 ```python
 """PII detection patterns."""
 
-from agentguard.patterns.common import find_emails, find_phones
-from agentguard.patterns.credit_card import find_credit_cards
-from agentguard.patterns.ssn import find_ssns
+from cogniwall.patterns.common import find_emails, find_phones
+from cogniwall.patterns.credit_card import find_credit_cards
+from cogniwall.patterns.ssn import find_ssns
 
 __all__ = ["find_ssns", "find_credit_cards", "find_emails", "find_phones"]
 ```
@@ -630,7 +630,7 @@ __all__ = ["find_ssns", "find_credit_cards", "find_emails", "find_phones"]
 - [ ] **Step 14: Commit**
 
 ```bash
-git add agentguard/patterns/ tests/test_patterns.py
+git add cogniwall/patterns/ tests/test_patterns.py
 git commit -m "feat: add PII detection patterns — SSN, credit card, email, phone"
 ```
 
@@ -639,7 +639,7 @@ git commit -m "feat: add PII detection patterns — SSN, credit card, email, pho
 ### Task 5: PII Detection Rule
 
 **Files:**
-- Create: `agentguard/rules/pii.py`
+- Create: `cogniwall/rules/pii.py`
 - Create: `tests/test_rules/test_pii.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -647,7 +647,7 @@ git commit -m "feat: add PII detection patterns — SSN, credit card, email, pho
 `tests/test_rules/test_pii.py`:
 ```python
 import pytest
-from agentguard.rules.pii import PiiDetectionRule
+from cogniwall.rules.pii import PiiDetectionRule
 
 
 @pytest.fixture
@@ -738,13 +738,13 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement PiiDetectionRule**
 
-`agentguard/rules/pii.py`:
+`cogniwall/rules/pii.py`:
 ```python
 from __future__ import annotations
 
-from agentguard.patterns import find_credit_cards, find_emails, find_phones, find_ssns
-from agentguard.rules.base import Rule, extract_strings
-from agentguard.verdict import Verdict
+from cogniwall.patterns import find_credit_cards, find_emails, find_phones, find_ssns
+from cogniwall.rules.base import Rule, extract_strings
+from cogniwall.verdict import Verdict
 
 _SCANNERS: dict[str, callable] = {
     "ssn": find_ssns,
@@ -812,7 +812,7 @@ Expected: all passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add agentguard/rules/pii.py tests/test_rules/test_pii.py
+git add cogniwall/rules/pii.py tests/test_rules/test_pii.py
 git commit -m "feat: add PII detection rule with recursive scanning"
 ```
 
@@ -821,7 +821,7 @@ git commit -m "feat: add PII detection rule with recursive scanning"
 ### Task 6: Financial Limit Rule
 
 **Files:**
-- Create: `agentguard/rules/financial.py`
+- Create: `cogniwall/rules/financial.py`
 - Create: `tests/test_rules/test_financial.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -829,7 +829,7 @@ git commit -m "feat: add PII detection rule with recursive scanning"
 `tests/test_rules/test_financial.py`:
 ```python
 import pytest
-from agentguard.rules.financial import FinancialLimitRule
+from cogniwall.rules.financial import FinancialLimitRule
 
 
 class TestFinancialLimitRule:
@@ -915,12 +915,12 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement FinancialLimitRule**
 
-`agentguard/rules/financial.py`:
+`cogniwall/rules/financial.py`:
 ```python
 from __future__ import annotations
 
-from agentguard.rules.base import Rule
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule
+from cogniwall.verdict import Verdict
 
 
 class FinancialLimitRule(Rule):
@@ -993,7 +993,7 @@ Expected: all passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add agentguard/rules/financial.py tests/test_rules/test_financial.py
+git add cogniwall/rules/financial.py tests/test_rules/test_financial.py
 git commit -m "feat: add financial limit rule with dot-notation field paths"
 ```
 
@@ -1002,7 +1002,7 @@ git commit -m "feat: add financial limit rule with dot-notation field paths"
 ### Task 7: Prompt Injection Rule
 
 **Files:**
-- Create: `agentguard/rules/prompt_injection.py`
+- Create: `cogniwall/rules/prompt_injection.py`
 - Create: `tests/test_rules/test_prompt_injection.py`
 
 - [ ] **Step 1: Write the failing tests for regex pre-filter**
@@ -1011,7 +1011,7 @@ git commit -m "feat: add financial limit rule with dot-notation field paths"
 ```python
 import pytest
 from unittest.mock import AsyncMock, patch
-from agentguard.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
 
 
 @pytest.fixture
@@ -1050,14 +1050,14 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement regex pre-filter portion**
 
-`agentguard/rules/prompt_injection.py`:
+`cogniwall/rules/prompt_injection.py`:
 ```python
 from __future__ import annotations
 
 import re
 
-from agentguard.rules.base import Rule, extract_strings
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule, extract_strings
+from cogniwall.verdict import Verdict
 
 _INJECTION_PATTERNS = [
     re.compile(r"ignore\s+(all\s+)?previous\s+instructions", re.IGNORECASE),
@@ -1262,7 +1262,7 @@ Expected: all passed
 - [ ] **Step 7: Commit**
 
 ```bash
-git add agentguard/rules/prompt_injection.py tests/test_rules/test_prompt_injection.py
+git add cogniwall/rules/prompt_injection.py tests/test_rules/test_prompt_injection.py
 git commit -m "feat: add prompt injection rule with regex pre-filter and LLM fallback"
 ```
 
@@ -1271,7 +1271,7 @@ git commit -m "feat: add prompt injection rule with regex pre-filter and LLM fal
 ### Task 8: Pipeline Engine
 
 **Files:**
-- Create: `agentguard/pipeline.py`
+- Create: `cogniwall/pipeline.py`
 - Create: `tests/test_pipeline.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -1279,9 +1279,9 @@ git commit -m "feat: add prompt injection rule with regex pre-filter and LLM fal
 `tests/test_pipeline.py`:
 ```python
 import pytest
-from agentguard.pipeline import Pipeline
-from agentguard.verdict import Verdict
-from agentguard.rules.base import Rule
+from cogniwall.pipeline import Pipeline
+from cogniwall.verdict import Verdict
+from cogniwall.rules.base import Rule
 
 
 class AlwaysApproveRule(Rule):
@@ -1402,7 +1402,7 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement Pipeline**
 
-`agentguard/pipeline.py`:
+`cogniwall/pipeline.py`:
 ```python
 from __future__ import annotations
 
@@ -1411,8 +1411,8 @@ import time
 from collections import defaultdict
 from typing import Literal
 
-from agentguard.rules.base import Rule
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule
+from cogniwall.verdict import Verdict
 
 
 class Pipeline:
@@ -1490,7 +1490,7 @@ Expected: all passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add agentguard/pipeline.py tests/test_pipeline.py
+git add cogniwall/pipeline.py tests/test_pipeline.py
 git commit -m "feat: add tiered pipeline engine with on_error handling"
 ```
 
@@ -1499,7 +1499,7 @@ git commit -m "feat: add tiered pipeline engine with on_error handling"
 ### Task 9: YAML Config Loading & Validation
 
 **Files:**
-- Create: `agentguard/config.py`
+- Create: `cogniwall/config.py`
 - Create: `tests/test_config.py`
 - Create: `tests/fixtures/valid_config.yaml`
 - Create: `tests/fixtures/invalid_unknown_type.yaml`
@@ -1548,7 +1548,7 @@ rules:
 ```python
 import pytest
 from pathlib import Path
-from agentguard.config import load_config, AgentGuardConfigError
+from cogniwall.config import load_config, CogniWallConfigError
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -1560,9 +1560,9 @@ class TestLoadConfig:
         assert len(result["rules"]) == 3
 
     def test_rules_are_rule_instances(self):
-        from agentguard.rules.pii import PiiDetectionRule
-        from agentguard.rules.financial import FinancialLimitRule
-        from agentguard.rules.prompt_injection import PromptInjectionRule
+        from cogniwall.rules.pii import PiiDetectionRule
+        from cogniwall.rules.financial import FinancialLimitRule
+        from cogniwall.rules.prompt_injection import PromptInjectionRule
 
         result = load_config(FIXTURES / "valid_config.yaml")
         rules = result["rules"]
@@ -1574,18 +1574,18 @@ class TestLoadConfig:
         """If on_error is not specified, default to 'error'."""
         result = load_config(FIXTURES / "valid_config.yaml")
         # This fixture has on_error: block, so test with a dict
-        from agentguard.config import parse_config
+        from cogniwall.config import parse_config
         result = parse_config({"version": "1", "rules": []})
         assert result["on_error"] == "error"
 
 
 class TestConfigValidation:
     def test_unknown_rule_type(self):
-        with pytest.raises(AgentGuardConfigError, match="nonexistent_rule"):
+        with pytest.raises(CogniWallConfigError, match="nonexistent_rule"):
             load_config(FIXTURES / "invalid_unknown_type.yaml")
 
     def test_missing_required_field(self):
-        with pytest.raises(AgentGuardConfigError, match="field"):
+        with pytest.raises(CogniWallConfigError, match="field"):
             load_config(FIXTURES / "invalid_missing_field.yaml")
 
     def test_file_not_found(self):
@@ -1593,13 +1593,13 @@ class TestConfigValidation:
             load_config(FIXTURES / "does_not_exist.yaml")
 
     def test_invalid_on_error_value(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="on_error"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="on_error"):
             parse_config({"version": "1", "on_error": "panic", "rules": []})
 
     def test_negative_financial_max(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="max"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="max"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "financial_limit", "field": "amount", "max": -50}],
@@ -1613,7 +1613,7 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 4: Implement config loading**
 
-`agentguard/config.py`:
+`cogniwall/config.py`:
 ```python
 from __future__ import annotations
 
@@ -1622,13 +1622,13 @@ from typing import Any
 
 import yaml
 
-from agentguard.rules.base import Rule
-from agentguard.rules.financial import FinancialLimitRule
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.base import Rule
+from cogniwall.rules.financial import FinancialLimitRule
+from cogniwall.rules.pii import PiiDetectionRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
 
 
-class AgentGuardConfigError(Exception):
+class CogniWallConfigError(Exception):
     """Raised when configuration is invalid."""
     pass
 
@@ -1643,7 +1643,7 @@ _VALID_ON_ERROR = {"error", "block", "approve"}
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
-    """Load and validate an AgentGuard YAML config file.
+    """Load and validate an CogniWall YAML config file.
 
     Returns a dict with:
         - "rules": list[Rule] — instantiated rule objects
@@ -1654,10 +1654,10 @@ def load_config(path: str | Path) -> dict[str, Any]:
         try:
             raw = yaml.safe_load(f)
         except yaml.YAMLError as e:
-            raise AgentGuardConfigError(f"YAML syntax error in {path}: {e}") from e
+            raise CogniWallConfigError(f"YAML syntax error in {path}: {e}") from e
 
     if not isinstance(raw, dict):
-        raise AgentGuardConfigError(f"Config file {path} must be a YAML mapping")
+        raise CogniWallConfigError(f"Config file {path} must be a YAML mapping")
 
     return parse_config(raw)
 
@@ -1671,7 +1671,7 @@ def parse_config(raw: dict[str, Any]) -> dict[str, Any]:
     """
     on_error = raw.get("on_error", "error")
     if on_error not in _VALID_ON_ERROR:
-        raise AgentGuardConfigError(
+        raise CogniWallConfigError(
             f"Invalid on_error value: '{on_error}'. Must be one of: {_VALID_ON_ERROR}"
         )
 
@@ -1680,7 +1680,7 @@ def parse_config(raw: dict[str, Any]) -> dict[str, Any]:
     for i, rule_config in enumerate(raw_rules):
         rule_type = rule_config.get("type")
         if rule_type not in _RULE_REGISTRY:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 f"Unknown rule type '{rule_type}' at rules[{i}]. "
                 f"Available types: {list(_RULE_REGISTRY.keys())}"
             )
@@ -1690,10 +1690,10 @@ def parse_config(raw: dict[str, Any]) -> dict[str, Any]:
         try:
             _validate_rule_config(rule_type, rule_config)
             rule = rule_cls.from_config(rule_config)
-        except AgentGuardConfigError:
+        except CogniWallConfigError:
             raise
         except Exception as e:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 f"Error constructing rule '{rule_type}' at rules[{i}]: {e}"
             ) from e
 
@@ -1706,15 +1706,15 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
     """Validate rule-specific config before construction."""
     if rule_type == "financial_limit":
         if "field" not in config:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 "financial_limit rule requires 'field' parameter"
             )
         if "max" in config and config["max"] is not None and config["max"] < 0:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 f"financial_limit 'max' must be non-negative, got {config['max']}"
             )
         if "min" in config and config["min"] is not None and config["min"] < 0:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 f"financial_limit 'min' must be non-negative, got {config['min']}"
             )
 ```
@@ -1724,15 +1724,15 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
 Run: `pytest tests/test_config.py -v`
 Expected: all passed
 
-- [ ] **Step 6: Update `agentguard/rules/__init__.py` with exports**
+- [ ] **Step 6: Update `cogniwall/rules/__init__.py` with exports**
 
 ```python
 """Guardrail rule implementations."""
 
-from agentguard.rules.base import Rule
-from agentguard.rules.financial import FinancialLimitRule
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.base import Rule
+from cogniwall.rules.financial import FinancialLimitRule
+from cogniwall.rules.pii import PiiDetectionRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
 
 __all__ = ["Rule", "PiiDetectionRule", "FinancialLimitRule", "PromptInjectionRule"]
 ```
@@ -1740,17 +1740,17 @@ __all__ = ["Rule", "PiiDetectionRule", "FinancialLimitRule", "PromptInjectionRul
 - [ ] **Step 7: Commit**
 
 ```bash
-git add agentguard/config.py agentguard/rules/__init__.py tests/test_config.py tests/fixtures/
+git add cogniwall/config.py cogniwall/rules/__init__.py tests/test_config.py tests/fixtures/
 git commit -m "feat: add YAML config loading with validation and rule registry"
 ```
 
 ---
 
-### Task 10: AgentGuard Main Class
+### Task 10: CogniWall Main Class
 
 **Files:**
-- Create: `agentguard/guard.py`
-- Modify: `agentguard/__init__.py`
+- Create: `cogniwall/guard.py`
+- Modify: `cogniwall/__init__.py`
 - Create: `tests/test_guard.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -1761,16 +1761,16 @@ import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-from agentguard import AgentGuard, Verdict
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.financial import FinancialLimitRule
+from cogniwall import CogniWall, Verdict
+from cogniwall.rules.pii import PiiDetectionRule
+from cogniwall.rules.financial import FinancialLimitRule
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-class TestAgentGuardPython:
+class TestCogniWallPython:
     def test_create_with_rules(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             PiiDetectionRule(block=["ssn"]),
             FinancialLimitRule(field="amount", max=100),
         ])
@@ -1778,41 +1778,41 @@ class TestAgentGuardPython:
 
     @pytest.mark.asyncio
     async def test_evaluate_async_blocks_pii(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         verdict = await guard.evaluate_async({"body": "SSN: 123-45-6789"})
         assert verdict.blocked
         assert verdict.rule == "pii_detection"
 
     @pytest.mark.asyncio
     async def test_evaluate_async_approves_clean(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         verdict = await guard.evaluate_async({"body": "Hello!"})
         assert not verdict.blocked
 
     def test_evaluate_sync_blocks_pii(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         verdict = guard.evaluate({"body": "SSN: 123-45-6789"})
         assert verdict.blocked
 
     def test_evaluate_sync_approves_clean(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         verdict = guard.evaluate({"body": "Hello!"})
         assert not verdict.blocked
 
     def test_evaluate_invalid_payload_type(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         with pytest.raises(TypeError):
             guard.evaluate("not a dict")
 
     @pytest.mark.asyncio
     async def test_evaluate_async_invalid_payload_type(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         with pytest.raises(TypeError):
             await guard.evaluate_async("not a dict")
 
     @pytest.mark.asyncio
     async def test_multi_rule_first_block_wins(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             PiiDetectionRule(block=["ssn"]),
             FinancialLimitRule(field="amount", max=100),
         ])
@@ -1825,27 +1825,27 @@ class TestAgentGuardPython:
 
     @pytest.mark.asyncio
     async def test_elapsed_ms_populated(self):
-        guard = AgentGuard(rules=[PiiDetectionRule(block=["ssn"])])
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
         verdict = await guard.evaluate_async({"body": "Hello"})
         assert verdict.elapsed_ms >= 0
 
 
-class TestAgentGuardFromYAML:
+class TestCogniWallFromYAML:
     def test_from_yaml(self):
-        guard = AgentGuard.from_yaml(FIXTURES / "valid_config.yaml")
+        guard = CogniWall.from_yaml(FIXTURES / "valid_config.yaml")
         assert guard is not None
 
     def test_from_yaml_sync_evaluate(self):
-        guard = AgentGuard.from_yaml(FIXTURES / "valid_config.yaml")
+        guard = CogniWall.from_yaml(FIXTURES / "valid_config.yaml")
         verdict = guard.evaluate({"body": "SSN: 123-45-6789", "amount": 50})
         assert verdict.blocked
         assert verdict.rule == "pii_detection"
 
 
-class TestAgentGuardOnError:
+class TestCogniWallOnError:
     @pytest.mark.asyncio
     async def test_on_error_propagated(self):
-        guard = AgentGuard(
+        guard = CogniWall(
             rules=[PiiDetectionRule(block=["ssn"])],
             on_error="block",
         )
@@ -1859,9 +1859,9 @@ class TestAgentGuardOnError:
 Run: `pytest tests/test_guard.py -v`
 Expected: FAIL — `ImportError`
 
-- [ ] **Step 3: Implement AgentGuard class**
+- [ ] **Step 3: Implement CogniWall class**
 
-`agentguard/guard.py`:
+`cogniwall/guard.py`:
 ```python
 from __future__ import annotations
 
@@ -1869,13 +1869,13 @@ import asyncio
 from pathlib import Path
 from typing import Literal
 
-from agentguard.config import load_config
-from agentguard.pipeline import Pipeline
-from agentguard.rules.base import Rule
-from agentguard.verdict import Verdict
+from cogniwall.config import load_config
+from cogniwall.pipeline import Pipeline
+from cogniwall.rules.base import Rule
+from cogniwall.verdict import Verdict
 
 
-class AgentGuard:
+class CogniWall:
     def __init__(
         self,
         rules: list[Rule],
@@ -1884,7 +1884,7 @@ class AgentGuard:
         self._pipeline = Pipeline(rules=rules, on_error=on_error)
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> AgentGuard:
+    def from_yaml(cls, path: str | Path) -> CogniWall:
         config = load_config(path)
         return cls(rules=config["rules"], on_error=config["on_error"])
 
@@ -1911,19 +1911,19 @@ class AgentGuard:
             return asyncio.run(self._pipeline.run(payload))
 ```
 
-- [ ] **Step 4: Update `agentguard/__init__.py` with public exports**
+- [ ] **Step 4: Update `cogniwall/__init__.py` with public exports**
 
 ```python
-"""AgentGuard — a programmable firewall for autonomous AI agents."""
+"""CogniWall — a programmable firewall for autonomous AI agents."""
 
-from agentguard.guard import AgentGuard
-from agentguard.verdict import Verdict
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.financial import FinancialLimitRule
-from agentguard.rules.prompt_injection import PromptInjectionRule
+from cogniwall.guard import CogniWall
+from cogniwall.verdict import Verdict
+from cogniwall.rules.pii import PiiDetectionRule
+from cogniwall.rules.financial import FinancialLimitRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
 
 __all__ = [
-    "AgentGuard",
+    "CogniWall",
     "Verdict",
     "PiiDetectionRule",
     "FinancialLimitRule",
@@ -1939,8 +1939,8 @@ Expected: all passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add agentguard/guard.py agentguard/__init__.py tests/test_guard.py
-git commit -m "feat: add AgentGuard class with sync/async evaluate and YAML loading"
+git add cogniwall/guard.py cogniwall/__init__.py tests/test_guard.py
+git commit -m "feat: add CogniWall class with sync/async evaluate and YAML loading"
 ```
 
 ---
@@ -1948,7 +1948,7 @@ git commit -m "feat: add AgentGuard class with sync/async evaluate and YAML load
 ### Task 11: Full Test Suite Verification & Example Config
 
 **Files:**
-- Create: `agentguard.yaml` (example config at project root)
+- Create: `cogniwall.yaml` (example config at project root)
 
 - [ ] **Step 1: Run the full test suite**
 
@@ -1957,9 +1957,9 @@ Expected: all tests pass
 
 - [ ] **Step 2: Create example config file**
 
-`agentguard.yaml`:
+`cogniwall.yaml`:
 ```yaml
-# AgentGuard example configuration
+# CogniWall example configuration
 # Copy this file and customize for your project.
 
 version: "1"
@@ -1982,7 +1982,7 @@ rules:
     max: 100
 
   # Detect prompt injection attacks
-  # Requires: pip install agentguard[anthropic] or agentguard[openai]
+  # Requires: pip install cogniwall[anthropic] or cogniwall[openai]
   # - type: prompt_injection
   #   provider: anthropic
   #   model: claude-haiku-4-5-20251001
@@ -1997,8 +1997,8 @@ Expected: all tests pass, no warnings
 - [ ] **Step 4: Commit**
 
 ```bash
-git add agentguard.yaml
-git commit -m "feat: add example agentguard.yaml config"
+git add cogniwall.yaml
+git commit -m "feat: add example cogniwall.yaml config"
 ```
 
 - [ ] **Step 5: Final commit — run all tests and verify clean state**

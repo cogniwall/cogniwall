@@ -1,8 +1,8 @@
-# AgentGuard Phase 2: Additional Guardrail Modules — Design Spec
+# CogniWall Phase 2: Additional Guardrail Modules — Design Spec
 
 ## Overview
 
-Phase 2 adds three new guardrail modules to the AgentGuard library and formalizes the custom rule extension API. All modules follow the existing `Rule` ABC pattern established in Phase 1.
+Phase 2 adds three new guardrail modules to the CogniWall library and formalizes the custom rule extension API. All modules follow the existing `Rule` ABC pattern established in Phase 1.
 
 This spec covers:
 1. Tone/Sentiment Veto rule (LLM-based, Tier 2)
@@ -63,7 +63,7 @@ Reuses the same `_call_anthropic` / `_call_openai` pattern from `PromptInjection
 
 ### File
 
-`agentguard/rules/tone_sentiment.py`
+`cogniwall/rules/tone_sentiment.py`
 
 ## 2. Rate Limiting Rule
 
@@ -113,7 +113,7 @@ Verdict.blocked(
 
 ### File
 
-`agentguard/rules/rate_limit.py`
+`cogniwall/rules/rate_limit.py`
 
 ## 3. Custom Python Rules
 
@@ -122,8 +122,8 @@ Verdict.blocked(
 ### Developer Experience
 
 ```python
-from agentguard import AgentGuard, Verdict
-from agentguard.rules.base import Rule, extract_strings, resolve_field
+from cogniwall import CogniWall, Verdict
+from cogniwall.rules.base import Rule, extract_strings, resolve_field
 
 class NoProfanityRule(Rule):
     tier = 1
@@ -146,7 +146,7 @@ class NoProfanityRule(Rule):
     def from_config(cls, config: dict) -> "NoProfanityRule":
         return cls()
 
-guard = AgentGuard(rules=[
+guard = CogniWall(rules=[
     NoProfanityRule(),
     PiiDetectionRule(block=["ssn"]),
 ])
@@ -171,19 +171,19 @@ guard = AgentGuard(rules=[
 
 ### Extract `resolve_field` to `rules/base.py`
 
-Move `_resolve_field` from `agentguard/rules/financial.py` to `agentguard/rules/base.py` as the public function `resolve_field`.
+Move `_resolve_field` from `cogniwall/rules/financial.py` to `cogniwall/rules/base.py` as the public function `resolve_field`.
 
 - `FinancialLimitRule` imports from `base.py` instead of using a local function
 - `ToneSentimentRule` and `RateLimitRule` import from `base.py`
-- Custom rules can import it: `from agentguard.rules.base import resolve_field`
+- Custom rules can import it: `from cogniwall.rules.base import resolve_field`
 
 ### Updated Exports
 
-`agentguard/rules/base.py` exports: `Rule`, `extract_strings`, `resolve_field`
+`cogniwall/rules/base.py` exports: `Rule`, `extract_strings`, `resolve_field`
 
-`agentguard/rules/__init__.py` adds: `ToneSentimentRule`, `RateLimitRule`
+`cogniwall/rules/__init__.py` adds: `ToneSentimentRule`, `RateLimitRule`
 
-`agentguard/__init__.py` adds: `ToneSentimentRule`, `RateLimitRule`
+`cogniwall/__init__.py` adds: `ToneSentimentRule`, `RateLimitRule`
 
 ## 5. Config Integration
 
@@ -213,8 +213,8 @@ _RULE_REGISTRY = {
 ## 6. New Files
 
 ```
-agentguard/rules/tone_sentiment.py       # ToneSentimentRule
-agentguard/rules/rate_limit.py           # RateLimitRule
+cogniwall/rules/tone_sentiment.py       # ToneSentimentRule
+cogniwall/rules/rate_limit.py           # RateLimitRule
 tests/test_rules/test_tone_sentiment.py  # tone/sentiment tests
 tests/test_rules/test_rate_limit.py      # rate limit tests
 tests/test_custom_rules.py              # custom rule integration tests
@@ -253,7 +253,7 @@ tests/test_custom_rules.py              # custom rule integration tests
 
 ### Config Validation Tests
 
-- `tone_sentiment` without `field` raises `AgentGuardConfigError`
+- `tone_sentiment` without `field` raises `CogniWallConfigError`
 - `tone_sentiment` with invalid preset raises error
 - `tone_sentiment` with neither `block` nor `custom` raises error
 - `rate_limit` without `max_actions` raises error

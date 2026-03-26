@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from agentguard.verdict import Verdict
+from cogniwall.verdict import Verdict
 
 
 class Rule(ABC):

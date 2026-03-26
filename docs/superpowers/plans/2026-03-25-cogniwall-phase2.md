@@ -1,14 +1,14 @@
-# AgentGuard Phase 2: Additional Guardrail Modules — Implementation Plan
+# CogniWall Phase 2: Additional Guardrail Modules — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add tone/sentiment veto, rate limiting, and custom rule support to the AgentGuard library, plus extract shared utilities.
+**Goal:** Add tone/sentiment veto, rate limiting, and custom rule support to the CogniWall library, plus extract shared utilities.
 
 **Architecture:** Four independent changes that build on the existing Rule ABC pattern. Start with the shared utility refactor (unblocks other tasks), then implement the two new rules, then add custom rule integration tests. Config and exports updated last.
 
 **Tech Stack:** Python 3.11+, pytest, pytest-asyncio, asyncio.Lock (rate limiting)
 
-**Spec:** `docs/superpowers/specs/2026-03-25-agentguard-phase2-design.md`
+**Spec:** `docs/superpowers/specs/2026-03-25-cogniwall-phase2-design.md`
 
 ---
 
@@ -16,32 +16,32 @@
 
 | File | Action | Responsibility |
 |------|--------|---------------|
-| `agentguard/rules/base.py` | Modify | Add `resolve_field` utility (moved from financial.py) |
-| `agentguard/rules/financial.py` | Modify | Import `resolve_field` from base instead of local `_resolve_field` |
-| `agentguard/rules/tone_sentiment.py` | Create | `ToneSentimentRule` — LLM-based tone analysis |
-| `agentguard/rules/rate_limit.py` | Create | `RateLimitRule` — in-memory rate limiting |
-| `agentguard/rules/__init__.py` | Modify | Add new rule exports |
-| `agentguard/__init__.py` | Modify | Add new rule exports |
-| `agentguard/config.py` | Modify | Register new rules, add validation |
+| `cogniwall/rules/base.py` | Modify | Add `resolve_field` utility (moved from financial.py) |
+| `cogniwall/rules/financial.py` | Modify | Import `resolve_field` from base instead of local `_resolve_field` |
+| `cogniwall/rules/tone_sentiment.py` | Create | `ToneSentimentRule` — LLM-based tone analysis |
+| `cogniwall/rules/rate_limit.py` | Create | `RateLimitRule` — in-memory rate limiting |
+| `cogniwall/rules/__init__.py` | Modify | Add new rule exports |
+| `cogniwall/__init__.py` | Modify | Add new rule exports |
+| `cogniwall/config.py` | Modify | Register new rules, add validation |
 | `tests/test_rules/test_tone_sentiment.py` | Create | Tone/sentiment rule tests |
 | `tests/test_rules/test_rate_limit.py` | Create | Rate limit rule tests |
 | `tests/test_custom_rules.py` | Create | Custom rule integration tests |
 | `tests/test_config.py` | Modify | Add validation tests for new rule types |
-| `agentguard.yaml` | Modify | Add new rule examples |
+| `cogniwall.yaml` | Modify | Add new rule examples |
 
 ---
 
 ### Task 1: Extract `resolve_field` to Shared Utility
 
 **Files:**
-- Modify: `agentguard/rules/base.py`
-- Modify: `agentguard/rules/financial.py`
+- Modify: `cogniwall/rules/base.py`
+- Modify: `cogniwall/rules/financial.py`
 
 - [ ] **Step 1: Write the failing test**
 
 `tests/test_rules/test_base.py` — add to existing file:
 ```python
-from agentguard.rules.base import resolve_field
+from cogniwall.rules.base import resolve_field
 
 
 class TestResolveField:
@@ -69,7 +69,7 @@ class TestResolveField:
 Run: `.venv/bin/pytest tests/test_rules/test_base.py::TestResolveField -v`
 Expected: FAIL — `ImportError: cannot import name 'resolve_field'`
 
-- [ ] **Step 3: Add `resolve_field` to `agentguard/rules/base.py`**
+- [ ] **Step 3: Add `resolve_field` to `cogniwall/rules/base.py`**
 
 Append after `_collect_strings`:
 ```python
@@ -89,14 +89,14 @@ def resolve_field(payload: dict, field_path: str) -> object:
     return current
 ```
 
-- [ ] **Step 4: Update `agentguard/rules/financial.py` to use shared utility**
+- [ ] **Step 4: Update `cogniwall/rules/financial.py` to use shared utility**
 
 Replace the import and remove the local `_resolve_field`:
 ```python
 # Change line 3 from:
-from agentguard.rules.base import Rule
+from cogniwall.rules.base import Rule
 # To:
-from agentguard.rules.base import Rule, resolve_field
+from cogniwall.rules.base import Rule, resolve_field
 ```
 
 Replace `_resolve_field` call on line 22 with `resolve_field`:
@@ -114,7 +114,7 @@ Expected: all 91 existing tests + 6 new = 97 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add agentguard/rules/base.py agentguard/rules/financial.py tests/test_rules/test_base.py
+git add cogniwall/rules/base.py cogniwall/rules/financial.py tests/test_rules/test_base.py
 git commit -m "refactor: extract resolve_field to shared utility in rules/base.py"
 ```
 
@@ -123,7 +123,7 @@ git commit -m "refactor: extract resolve_field to shared utility in rules/base.p
 ### Task 2: Rate Limit Rule
 
 **Files:**
-- Create: `agentguard/rules/rate_limit.py`
+- Create: `cogniwall/rules/rate_limit.py`
 - Create: `tests/test_rules/test_rate_limit.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -134,7 +134,7 @@ import asyncio
 import time
 
 import pytest
-from agentguard.rules.rate_limit import RateLimitRule
+from cogniwall.rules.rate_limit import RateLimitRule
 
 
 class TestRateLimitRule:
@@ -229,15 +229,15 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement `RateLimitRule`**
 
-`agentguard/rules/rate_limit.py`:
+`cogniwall/rules/rate_limit.py`:
 ```python
 from __future__ import annotations
 
 import asyncio
 import time
 
-from agentguard.rules.base import Rule, resolve_field
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule, resolve_field
+from cogniwall.verdict import Verdict
 
 
 class RateLimitRule(Rule):
@@ -313,7 +313,7 @@ Expected: all passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add agentguard/rules/rate_limit.py tests/test_rules/test_rate_limit.py
+git add cogniwall/rules/rate_limit.py tests/test_rules/test_rate_limit.py
 git commit -m "feat: add rate limit rule with in-memory per-key tracking"
 ```
 
@@ -322,7 +322,7 @@ git commit -m "feat: add rate limit rule with in-memory per-key tracking"
 ### Task 3: Tone/Sentiment Veto Rule
 
 **Files:**
-- Create: `agentguard/rules/tone_sentiment.py`
+- Create: `cogniwall/rules/tone_sentiment.py`
 - Create: `tests/test_rules/test_tone_sentiment.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -331,7 +331,7 @@ git commit -m "feat: add rate limit rule with in-memory per-key tracking"
 ```python
 import pytest
 from unittest.mock import AsyncMock, patch
-from agentguard.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
+from cogniwall.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
 
 
 @pytest.fixture
@@ -476,12 +476,12 @@ Expected: FAIL — `ImportError`
 
 - [ ] **Step 3: Implement `ToneSentimentRule`**
 
-`agentguard/rules/tone_sentiment.py`:
+`cogniwall/rules/tone_sentiment.py`:
 ```python
 from __future__ import annotations
 
-from agentguard.rules.base import Rule, resolve_field
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule, resolve_field
+from cogniwall.verdict import Verdict
 
 VALID_PRESETS = frozenset({"angry", "sarcastic", "apologetic", "threatening", "dismissive"})
 
@@ -603,7 +603,7 @@ Expected: all passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add agentguard/rules/tone_sentiment.py tests/test_rules/test_tone_sentiment.py
+git add cogniwall/rules/tone_sentiment.py tests/test_rules/test_tone_sentiment.py
 git commit -m "feat: add tone/sentiment veto rule with preset and custom tones"
 ```
 
@@ -619,9 +619,9 @@ git commit -m "feat: add tone/sentiment veto rule with preset and custom tones"
 `tests/test_custom_rules.py`:
 ```python
 import pytest
-from agentguard import AgentGuard, Verdict
-from agentguard.rules.base import Rule, extract_strings, resolve_field
-from agentguard.rules.pii import PiiDetectionRule
+from cogniwall import CogniWall, Verdict
+from cogniwall.rules.base import Rule, extract_strings, resolve_field
+from cogniwall.rules.pii import PiiDetectionRule
 
 
 class NoProfanityRule(Rule):
@@ -694,7 +694,7 @@ class CustomErrorRule(Rule):
 class TestCustomRuleInPipeline:
     @pytest.mark.asyncio
     async def test_custom_tier1_alongside_builtin(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             NoProfanityRule(),
             PiiDetectionRule(block=["ssn"]),
         ])
@@ -705,7 +705,7 @@ class TestCustomRuleInPipeline:
 
     @pytest.mark.asyncio
     async def test_custom_tier2_sorted_correctly(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             CustomTier2Rule(),
             PiiDetectionRule(block=["ssn"]),
         ])
@@ -716,27 +716,27 @@ class TestCustomRuleInPipeline:
 
     @pytest.mark.asyncio
     async def test_custom_error_handled_by_on_error(self):
-        guard = AgentGuard(rules=[CustomErrorRule()], on_error="block")
+        guard = CogniWall(rules=[CustomErrorRule()], on_error="block")
         verdict = await guard.evaluate_async({"body": "hello"})
         assert verdict.blocked
 
     @pytest.mark.asyncio
     async def test_custom_rule_uses_resolve_field(self):
-        guard = AgentGuard(rules=[CustomFieldCheckRule()])
+        guard = CogniWall(rules=[CustomFieldCheckRule()])
         verdict = await guard.evaluate_async({"order": {"status": "cancelled"}})
         assert verdict.blocked
         assert verdict.rule == "custom_field_check"
 
     @pytest.mark.asyncio
     async def test_custom_rule_uses_extract_strings(self):
-        guard = AgentGuard(rules=[NoProfanityRule()])
+        guard = CogniWall(rules=[NoProfanityRule()])
         # Nested payload — extract_strings should find it
         verdict = await guard.evaluate_async({"nested": {"text": "go to hell"}})
         assert verdict.blocked
 
     @pytest.mark.asyncio
     async def test_mixed_builtin_and_custom(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             PiiDetectionRule(block=["ssn"]),
             NoProfanityRule(),
             CustomFieldCheckRule(),
@@ -768,11 +768,11 @@ git commit -m "feat: add custom rule integration tests with extract_strings and 
 ### Task 5: Config Integration & Exports
 
 **Files:**
-- Modify: `agentguard/config.py`
-- Modify: `agentguard/rules/__init__.py`
-- Modify: `agentguard/__init__.py`
+- Modify: `cogniwall/config.py`
+- Modify: `cogniwall/rules/__init__.py`
+- Modify: `cogniwall/__init__.py`
 - Modify: `tests/test_config.py`
-- Modify: `agentguard.yaml`
+- Modify: `cogniwall.yaml`
 
 - [ ] **Step 1: Write the failing config validation tests**
 
@@ -780,31 +780,31 @@ Add to `tests/test_config.py`:
 ```python
 class TestToneSentimentValidation:
     def test_missing_field(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="field"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="field"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "tone_sentiment", "block": ["angry"]}],
             })
 
     def test_invalid_preset(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="invalid_tone"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="invalid_tone"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "tone_sentiment", "field": "body", "block": ["invalid_tone"]}],
             })
 
     def test_no_block_or_custom(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="block.*custom"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="block.*custom"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "tone_sentiment", "field": "body"}],
             })
 
     def test_valid_config(self):
-        from agentguard.config import parse_config
+        from cogniwall.config import parse_config
         result = parse_config({
             "version": "1",
             "rules": [{"type": "tone_sentiment", "field": "body", "block": ["angry"], "custom": ["legally liable"]}],
@@ -814,31 +814,31 @@ class TestToneSentimentValidation:
 
 class TestRateLimitValidation:
     def test_missing_max_actions(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="max_actions"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="max_actions"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "rate_limit", "window_seconds": 60}],
             })
 
     def test_missing_window_seconds(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="window_seconds"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="window_seconds"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "rate_limit", "max_actions": 5}],
             })
 
     def test_negative_window(self):
-        from agentguard.config import parse_config
-        with pytest.raises(AgentGuardConfigError, match="window_seconds"):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="window_seconds"):
             parse_config({
                 "version": "1",
                 "rules": [{"type": "rate_limit", "max_actions": 5, "window_seconds": -1}],
             })
 
     def test_valid_config(self):
-        from agentguard.config import parse_config
+        from cogniwall.config import parse_config
         result = parse_config({
             "version": "1",
             "rules": [{"type": "rate_limit", "max_actions": 5, "window_seconds": 3600}],
@@ -851,12 +851,12 @@ class TestRateLimitValidation:
 Run: `.venv/bin/pytest tests/test_config.py::TestToneSentimentValidation tests/test_config.py::TestRateLimitValidation -v`
 Expected: FAIL — unknown rule type
 
-- [ ] **Step 3: Update `agentguard/config.py`**
+- [ ] **Step 3: Update `cogniwall/config.py`**
 
 Add imports at top:
 ```python
-from agentguard.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
-from agentguard.rules.rate_limit import RateLimitRule
+from cogniwall.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
+from cogniwall.rules.rate_limit import RateLimitRule
 ```
 
 Add to `_RULE_REGISTRY`:
@@ -874,47 +874,47 @@ Add validation cases in `_validate_rule_config`:
 ```python
     elif rule_type == "tone_sentiment":
         if "field" not in config:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 "tone_sentiment rule requires 'field' parameter"
             )
         block = config.get("block", [])
         custom = config.get("custom", [])
         if not block and not custom:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 "tone_sentiment rule requires at least one of 'block' or 'custom'"
             )
         for preset in block:
             if preset not in VALID_PRESETS:
-                raise AgentGuardConfigError(
+                raise CogniWallConfigError(
                     f"Invalid tone preset '{preset}'. "
                     f"Available presets: {sorted(VALID_PRESETS)}"
                 )
     elif rule_type == "rate_limit":
         if "max_actions" not in config:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 "rate_limit rule requires 'max_actions' parameter"
             )
         if "window_seconds" not in config:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 "rate_limit rule requires 'window_seconds' parameter"
             )
         if config["window_seconds"] <= 0:
-            raise AgentGuardConfigError(
+            raise CogniWallConfigError(
                 f"rate_limit 'window_seconds' must be positive, got {config['window_seconds']}"
             )
 ```
 
-- [ ] **Step 4: Update `agentguard/rules/__init__.py`**
+- [ ] **Step 4: Update `cogniwall/rules/__init__.py`**
 
 ```python
 """Guardrail rule implementations."""
 
-from agentguard.rules.base import Rule
-from agentguard.rules.financial import FinancialLimitRule
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.prompt_injection import PromptInjectionRule
-from agentguard.rules.rate_limit import RateLimitRule
-from agentguard.rules.tone_sentiment import ToneSentimentRule
+from cogniwall.rules.base import Rule
+from cogniwall.rules.financial import FinancialLimitRule
+from cogniwall.rules.pii import PiiDetectionRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.rate_limit import RateLimitRule
+from cogniwall.rules.tone_sentiment import ToneSentimentRule
 
 __all__ = [
     "Rule",
@@ -926,21 +926,21 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 5: Update `agentguard/__init__.py`**
+- [ ] **Step 5: Update `cogniwall/__init__.py`**
 
 ```python
-"""AgentGuard — a programmable firewall for autonomous AI agents."""
+"""CogniWall — a programmable firewall for autonomous AI agents."""
 
-from agentguard.guard import AgentGuard
-from agentguard.verdict import Verdict
-from agentguard.rules.pii import PiiDetectionRule
-from agentguard.rules.financial import FinancialLimitRule
-from agentguard.rules.prompt_injection import PromptInjectionRule
-from agentguard.rules.tone_sentiment import ToneSentimentRule
-from agentguard.rules.rate_limit import RateLimitRule
+from cogniwall.guard import CogniWall
+from cogniwall.verdict import Verdict
+from cogniwall.rules.pii import PiiDetectionRule
+from cogniwall.rules.financial import FinancialLimitRule
+from cogniwall.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.tone_sentiment import ToneSentimentRule
+from cogniwall.rules.rate_limit import RateLimitRule
 
 __all__ = [
-    "AgentGuard",
+    "CogniWall",
     "Verdict",
     "PiiDetectionRule",
     "FinancialLimitRule",
@@ -950,13 +950,13 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 6: Update `agentguard.yaml` with new rule examples**
+- [ ] **Step 6: Update `cogniwall.yaml` with new rule examples**
 
 Add after the financial_limit rule section:
 ```yaml
 
   # Block unwanted tone in AI-generated content
-  # Requires: pip install agentguard[anthropic] or agentguard[openai]
+  # Requires: pip install cogniwall[anthropic] or cogniwall[openai]
   # - type: tone_sentiment
   #   field: body
   #   block: [angry, sarcastic, apologetic]
@@ -980,7 +980,7 @@ Expected: all passed
 - [ ] **Step 8: Commit**
 
 ```bash
-git add agentguard/config.py agentguard/rules/__init__.py agentguard/__init__.py agentguard.yaml tests/test_config.py
+git add cogniwall/config.py cogniwall/rules/__init__.py cogniwall/__init__.py cogniwall.yaml tests/test_config.py
 git commit -m "feat: register tone_sentiment and rate_limit in config, update exports"
 ```
 
@@ -995,10 +995,10 @@ Expected: all tests pass, no warnings
 
 - [ ] **Step 2: Verify imports work from public API**
 
-Run: `.venv/bin/python -c "from agentguard import AgentGuard, Verdict, PiiDetectionRule, FinancialLimitRule, PromptInjectionRule, ToneSentimentRule, RateLimitRule; print('All imports OK')"`
+Run: `.venv/bin/python -c "from cogniwall import CogniWall, Verdict, PiiDetectionRule, FinancialLimitRule, PromptInjectionRule, ToneSentimentRule, RateLimitRule; print('All imports OK')"`
 Expected: `All imports OK`
 
 - [ ] **Step 3: Verify utility imports work**
 
-Run: `.venv/bin/python -c "from agentguard.rules.base import Rule, extract_strings, resolve_field; print('Utilities OK')"`
+Run: `.venv/bin/python -c "from cogniwall.rules.base import Rule, extract_strings, resolve_field; print('Utilities OK')"`
 Expected: `Utilities OK`

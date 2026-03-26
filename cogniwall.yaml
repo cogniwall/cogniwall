@@ -1,4 +1,4 @@
-# AgentGuard example configuration
+# CogniWall example configuration
 # Copy this file and customize for your project.
 
 version: "1"
@@ -21,7 +21,7 @@ rules:
     max: 100
 
   # Block unwanted tone in AI-generated content
-  # Requires: pip install agentguard[anthropic] or agentguard[openai]
+  # Requires: pip install cogniwall[anthropic] or cogniwall[openai]
   # - type: tone_sentiment
   #   field: body
   #   block: [angry, sarcastic, apologetic]
@@ -37,7 +37,7 @@ rules:
   #   key_field: user_id
 
   # Detect prompt injection attacks
-  # Requires: pip install agentguard[anthropic] or agentguard[openai]
+  # Requires: pip install cogniwall[anthropic] or cogniwall[openai]
   # - type: prompt_injection
   #   provider: anthropic
   #   model: claude-haiku-4-5-20251001

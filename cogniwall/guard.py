@@ -4,13 +4,13 @@ import asyncio
 from pathlib import Path
 from typing import Literal
 
-from agentguard.config import load_config
-from agentguard.pipeline import Pipeline
-from agentguard.rules.base import Rule
-from agentguard.verdict import Verdict
+from cogniwall.config import load_config
+from cogniwall.pipeline import Pipeline
+from cogniwall.rules.base import Rule
+from cogniwall.verdict import Verdict
 
 
-class AgentGuard:
+class CogniWall:
     def __init__(
         self,
         rules: list[Rule],
@@ -19,7 +19,7 @@ class AgentGuard:
         self._pipeline = Pipeline(rules=rules, on_error=on_error)
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> AgentGuard:
+    def from_yaml(cls, path: str | Path) -> CogniWall:
         config = load_config(path)
         return cls(rules=config["rules"], on_error=config["on_error"])
 

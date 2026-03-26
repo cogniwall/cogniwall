@@ -1,8 +1,8 @@
 import re
 import pytest
-from agentguard import AgentGuard, Verdict
-from agentguard.rules.base import Rule, extract_strings, resolve_field
-from agentguard.rules.pii import PiiDetectionRule
+from cogniwall import CogniWall, Verdict
+from cogniwall.rules.base import Rule, extract_strings, resolve_field
+from cogniwall.rules.pii import PiiDetectionRule
 
 
 class NoProfanityRule(Rule):
@@ -75,7 +75,7 @@ class CustomErrorRule(Rule):
 class TestCustomRuleInPipeline:
     @pytest.mark.asyncio
     async def test_custom_tier1_alongside_builtin(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             NoProfanityRule(),
             PiiDetectionRule(block=["ssn"]),
         ])
@@ -85,7 +85,7 @@ class TestCustomRuleInPipeline:
 
     @pytest.mark.asyncio
     async def test_custom_tier2_sorted_correctly(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             CustomTier2Rule(),
             PiiDetectionRule(block=["ssn"]),
         ])
@@ -95,26 +95,26 @@ class TestCustomRuleInPipeline:
 
     @pytest.mark.asyncio
     async def test_custom_error_handled_by_on_error(self):
-        guard = AgentGuard(rules=[CustomErrorRule()], on_error="block")
+        guard = CogniWall(rules=[CustomErrorRule()], on_error="block")
         verdict = await guard.evaluate_async({"body": "hello"})
         assert verdict.blocked
 
     @pytest.mark.asyncio
     async def test_custom_rule_uses_resolve_field(self):
-        guard = AgentGuard(rules=[CustomFieldCheckRule()])
+        guard = CogniWall(rules=[CustomFieldCheckRule()])
         verdict = await guard.evaluate_async({"order": {"status": "cancelled"}})
         assert verdict.blocked
         assert verdict.rule == "custom_field_check"
 
     @pytest.mark.asyncio
     async def test_custom_rule_uses_extract_strings(self):
-        guard = AgentGuard(rules=[NoProfanityRule()])
+        guard = CogniWall(rules=[NoProfanityRule()])
         verdict = await guard.evaluate_async({"nested": {"text": "go to hell"}})
         assert verdict.blocked
 
     @pytest.mark.asyncio
     async def test_mixed_builtin_and_custom(self):
-        guard = AgentGuard(rules=[
+        guard = CogniWall(rules=[
             PiiDetectionRule(block=["ssn"]),
             NoProfanityRule(),
             CustomFieldCheckRule(),

@@ -1,5 +1,5 @@
 import pytest
-from agentguard.rules.financial import FinancialLimitRule
+from cogniwall.rules.financial import FinancialLimitRule
 
 
 class TestFinancialLimitRule:

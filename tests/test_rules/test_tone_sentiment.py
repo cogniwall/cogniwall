@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from agentguard.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
+from cogniwall.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
 
 
 @pytest.fixture

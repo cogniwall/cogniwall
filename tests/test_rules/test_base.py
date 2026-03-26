@@ -1,5 +1,5 @@
 import pytest
-from agentguard.rules.base import Rule, resolve_field
+from cogniwall.rules.base import Rule, resolve_field
 
 
 def test_rule_is_abstract():
@@ -25,7 +25,7 @@ def test_rule_subclass_must_implement_evaluate():
 
 def test_rule_subclass_with_evaluate():
     """Subclass that implements all abstract methods can be instantiated."""
-    from agentguard.verdict import Verdict
+    from cogniwall.verdict import Verdict
 
     class DummyRule(Rule):
         tier = 1

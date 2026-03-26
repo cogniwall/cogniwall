@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 
-from agentguard.rules.base import Rule, extract_strings
-from agentguard.verdict import Verdict
+from cogniwall.rules.base import Rule, extract_strings
+from cogniwall.verdict import Verdict
 
 _INJECTION_PATTERNS = [
     re.compile(r"ignore\s+(all\s+)?previous\s+instructions", re.IGNORECASE),

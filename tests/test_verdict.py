@@ -1,4 +1,4 @@
-from agentguard.verdict import Verdict
+from cogniwall.verdict import Verdict
 
 
 def test_approved_verdict():

@@ -41,10 +41,18 @@ def extract_strings(obj: object) -> list[str]:
 def _collect_strings(obj: object, acc: list[str]) -> None:
     if isinstance(obj, str):
         acc.append(obj)
+    elif isinstance(obj, bytes):
+        try:
+            acc.append(obj.decode("utf-8", errors="replace"))
+        except Exception:
+            pass
     elif isinstance(obj, dict):
         for value in obj.values():
             _collect_strings(value, acc)
-    elif isinstance(obj, list):
+    elif isinstance(obj, (list, tuple)):
+        for item in obj:
+            _collect_strings(item, acc)
+    elif isinstance(obj, (set, frozenset)):
         for item in obj:
             _collect_strings(item, acc)
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 from cogniwall.rules.base import Rule, resolve_field
 from cogniwall.verdict import Verdict
 
@@ -25,6 +27,13 @@ class FinancialLimitRule(Rule):
 
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return Verdict.approved()
+
+        if math.isnan(value) or math.isinf(value):
+            return Verdict.blocked(
+                rule=self.rule_name,
+                reason=f"Financial limit violated: {self.field}={value} is not a finite number",
+                details={"field": self.field, "value": value},
+            )
 
         if self.max_value is not None and value > self.max_value:
             return Verdict.blocked(

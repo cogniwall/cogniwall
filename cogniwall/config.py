@@ -6,6 +6,7 @@ from typing import Any
 
 import yaml
 
+from cogniwall.audit import AuditClient
 from cogniwall.rules.base import Rule
 from cogniwall.rules.financial import FinancialLimitRule
 from cogniwall.rules.pii import PiiDetectionRule
@@ -77,7 +78,14 @@ def parse_config(raw: dict[str, Any]) -> dict[str, Any]:
 
         rules.append(rule)
 
-    return {"rules": rules, "on_error": on_error}
+    # Parse audit config
+    audit = None
+    raw_audit = raw.get("audit")
+    if raw_audit:
+        _validate_audit_config(raw_audit)
+        audit = AuditClient.from_config(raw_audit)
+
+    return {"rules": rules, "on_error": on_error, "audit": audit}
 
 
 def _validate_rule_config(rule_type: str, config: dict) -> None:
@@ -139,3 +147,16 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
             raise CogniWallConfigError(
                 f"rate_limit 'window_seconds' must be positive, got {config['window_seconds']}"
             )
+
+
+def _validate_audit_config(config: dict) -> None:
+    """Validate the audit configuration section."""
+    if "endpoint" not in config:
+        raise CogniWallConfigError(
+            "audit config requires 'endpoint' parameter"
+        )
+    flush_mode = config.get("flush_mode", "async")
+    if flush_mode not in ("async", "sync"):
+        raise CogniWallConfigError(
+            f"audit 'flush_mode' must be 'async' or 'sync', got '{flush_mode}'"
+        )

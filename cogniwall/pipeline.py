@@ -1,13 +1,34 @@
 from __future__ import annotations
 
 import asyncio
-import copy
 import time
 from collections import defaultdict
 from typing import Literal
 
 from cogniwall.rules.base import Rule
 from cogniwall.verdict import Verdict
+
+
+def _safe_copy(obj: object) -> object:
+    """Recursively copy an object, handling only JSON-serializable types.
+
+    Unlike copy.deepcopy, this never invokes __reduce__, __deepcopy__,
+    or any other dunder protocol on payload objects, preventing RCE
+    via crafted __reduce__ methods and bypasses via custom __deepcopy__.
+
+    Non-JSON-serializable types are converted to their string representation.
+    """
+    if obj is None or isinstance(obj, (bool, int, float, str)):
+        return obj
+    if isinstance(obj, dict):
+        return {_safe_copy(k): _safe_copy(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_safe_copy(item) for item in obj]
+    if isinstance(obj, tuple):
+        return tuple(_safe_copy(item) for item in obj)
+    # Non-JSON-serializable type: convert to string to avoid calling
+    # any dunder methods like __reduce__ or __deepcopy__
+    return str(obj)
 
 
 class Pipeline:
@@ -24,7 +45,7 @@ class Pipeline:
 
         for tier_rules in self.tiers:
             results = await asyncio.gather(
-                *[rule.evaluate(copy.deepcopy(payload)) for rule in tier_rules],
+                *[rule.evaluate(_safe_copy(payload)) for rule in tier_rules],
                 return_exceptions=True,
             )
 

@@ -28,7 +28,10 @@ class FinancialLimitRule(Rule):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return Verdict.approved()
 
-        if math.isnan(value) or math.isinf(value):
+        # Python ints can never be NaN or Inf, but math.isnan/isinf on
+        # very large ints (e.g. 10**309) raises OverflowError when
+        # converting to float. Skip the check for int values.
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             return Verdict.blocked(
                 rule=self.rule_name,
                 reason=f"Financial limit violated: {self.field}={value} is not a finite number",

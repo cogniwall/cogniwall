@@ -31,12 +31,18 @@ class Rule(ABC):
 _MAX_DEPTH = 2000
 
 
-def extract_strings(obj: object) -> list[str]:
+def extract_strings(obj: object, *, include_keys: bool = False) -> list[str]:
     """Iteratively extract all string values from nested dicts/lists.
 
     Shared utility used by PII and prompt injection rules.
     Uses a stack-based approach with cycle detection to handle
     deeply nested and circular structures safely.
+
+    Args:
+        obj: The object to extract strings from.
+        include_keys: If True, also extract strings from dict keys.
+            Callers that need to scan dict keys for sensitive data
+            (e.g. PII detection) should set this to True.
     """
     results: list[str] = []
     # Stack of (object, depth) tuples
@@ -61,7 +67,9 @@ def extract_strings(obj: object) -> list[str]:
             if obj_id in visited:
                 continue
             visited.add(obj_id)
-            for value in current.values():
+            for key, value in current.items():
+                if include_keys:
+                    stack.append((key, depth + 1))
                 stack.append((value, depth + 1))
         elif isinstance(current, (list, tuple)):
             obj_id = id(current)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any
 
@@ -86,14 +87,24 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
             raise CogniWallConfigError(
                 "financial_limit rule requires 'field' parameter"
             )
-        if "max" in config and config["max"] is not None and config["max"] < 0:
-            raise CogniWallConfigError(
-                f"financial_limit 'max' must be non-negative, got {config['max']}"
-            )
-        if "min" in config and config["min"] is not None and config["min"] < 0:
-            raise CogniWallConfigError(
-                f"financial_limit 'min' must be non-negative, got {config['min']}"
-            )
+        if "max" in config and config["max"] is not None:
+            if isinstance(config["max"], float) and math.isnan(config["max"]):
+                raise CogniWallConfigError(
+                    "financial_limit 'max' must not be NaN"
+                )
+            if config["max"] < 0:
+                raise CogniWallConfigError(
+                    f"financial_limit 'max' must be non-negative, got {config['max']}"
+                )
+        if "min" in config and config["min"] is not None:
+            if isinstance(config["min"], float) and math.isnan(config["min"]):
+                raise CogniWallConfigError(
+                    "financial_limit 'min' must not be NaN"
+                )
+            if config["min"] < 0:
+                raise CogniWallConfigError(
+                    f"financial_limit 'min' must be non-negative, got {config['min']}"
+                )
     elif rule_type == "tone_sentiment":
         if "field" not in config:
             raise CogniWallConfigError(

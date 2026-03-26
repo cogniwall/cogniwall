@@ -28,33 +28,57 @@ class Rule(ABC):
         ...
 
 
+_MAX_DEPTH = 2000
+
+
 def extract_strings(obj: object) -> list[str]:
-    """Recursively extract all string values from nested dicts/lists.
+    """Iteratively extract all string values from nested dicts/lists.
 
     Shared utility used by PII and prompt injection rules.
+    Uses a stack-based approach with cycle detection to handle
+    deeply nested and circular structures safely.
     """
     results: list[str] = []
-    _collect_strings(obj, results)
+    # Stack of (object, depth) tuples
+    stack: list[tuple[object, int]] = [(obj, 0)]
+    visited: set[int] = set()
+
+    while stack:
+        current, depth = stack.pop()
+
+        if depth > _MAX_DEPTH:
+            continue
+
+        if isinstance(current, str):
+            results.append(current)
+        elif isinstance(current, bytes):
+            try:
+                results.append(current.decode("utf-8", errors="replace"))
+            except Exception:
+                pass
+        elif isinstance(current, dict):
+            obj_id = id(current)
+            if obj_id in visited:
+                continue
+            visited.add(obj_id)
+            for value in current.values():
+                stack.append((value, depth + 1))
+        elif isinstance(current, (list, tuple)):
+            obj_id = id(current)
+            if obj_id in visited:
+                continue
+            visited.add(obj_id)
+            for item in current:
+                stack.append((item, depth + 1))
+        elif isinstance(current, (set, frozenset)):
+            obj_id = id(current)
+            if obj_id in visited:
+                continue
+            visited.add(obj_id)
+            for item in current:
+                stack.append((item, depth + 1))
+
     return results
-
-
-def _collect_strings(obj: object, acc: list[str]) -> None:
-    if isinstance(obj, str):
-        acc.append(obj)
-    elif isinstance(obj, bytes):
-        try:
-            acc.append(obj.decode("utf-8", errors="replace"))
-        except Exception:
-            pass
-    elif isinstance(obj, dict):
-        for value in obj.values():
-            _collect_strings(value, acc)
-    elif isinstance(obj, (list, tuple)):
-        for item in obj:
-            _collect_strings(item, acc)
-    elif isinstance(obj, (set, frozenset)):
-        for item in obj:
-            _collect_strings(item, acc)
 
 
 def resolve_field(payload: dict, field_path: str) -> object:

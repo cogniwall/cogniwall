@@ -35,7 +35,7 @@ class PiiDetectionRule(Rule):
         self.custom_terms = custom_terms or []
 
     async def evaluate(self, payload: dict) -> Verdict:
-        texts = extract_strings(payload)
+        texts = extract_strings(payload, include_keys=True)
         if not texts:
             return Verdict.approved()
 

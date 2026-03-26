@@ -1,8 +1,9 @@
 import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from cogniwall import CogniWall, Verdict, PiiDetectionRule, FinancialLimitRule
+from cogniwall.audit import AuditClient
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -89,3 +90,79 @@ class TestCogniWallOnError:
         )
         verdict = await guard.evaluate_async({"body": "Hello"})
         assert verdict.status == "approved"
+
+
+class TestCogniWallWithAudit:
+    @pytest.mark.asyncio
+    async def test_audit_record_called_on_evaluate(self):
+        audit = MagicMock(spec=AuditClient)
+        audit.include_payload = False
+        audit.build_event = MagicMock(return_value={"event_id": "test"})
+        guard = CogniWall(
+            rules=[PiiDetectionRule(block=["ssn"])],
+            audit=audit,
+        )
+        verdict = await guard.evaluate_async({"body": "Hello"})
+        assert not verdict.blocked
+        audit.build_event.assert_called_once()
+        audit.record.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_audit_receives_metadata(self):
+        audit = MagicMock(spec=AuditClient)
+        audit.include_payload = False
+        audit.build_event = MagicMock(return_value={"event_id": "test"})
+        guard = CogniWall(
+            rules=[PiiDetectionRule(block=["ssn"])],
+            audit=audit,
+        )
+        await guard.evaluate_async(
+            {"body": "Hello"},
+            metadata={"agent_id": "bot-1"},
+        )
+        call_kwargs = audit.build_event.call_args
+        assert call_kwargs[1]["metadata"] == {"agent_id": "bot-1"}
+
+    @pytest.mark.asyncio
+    async def test_audit_includes_payload_when_configured(self):
+        audit = MagicMock(spec=AuditClient)
+        audit.include_payload = True
+        audit.build_event = MagicMock(return_value={"event_id": "test"})
+        guard = CogniWall(
+            rules=[PiiDetectionRule(block=["ssn"])],
+            audit=audit,
+        )
+        payload = {"body": "Hello"}
+        await guard.evaluate_async(payload)
+        call_kwargs = audit.build_event.call_args
+        assert call_kwargs[1]["payload"] == payload
+
+    @pytest.mark.asyncio
+    async def test_audit_failure_does_not_affect_verdict(self):
+        audit = MagicMock(spec=AuditClient)
+        audit.include_payload = False
+        audit.build_event = MagicMock(side_effect=RuntimeError("audit broke"))
+        guard = CogniWall(
+            rules=[PiiDetectionRule(block=["ssn"])],
+            audit=audit,
+        )
+        verdict = await guard.evaluate_async({"body": "Hello"})
+        assert not verdict.blocked
+
+    @pytest.mark.asyncio
+    async def test_no_audit_backward_compatible(self):
+        guard = CogniWall(rules=[PiiDetectionRule(block=["ssn"])])
+        verdict = await guard.evaluate_async({"body": "Hello"})
+        assert not verdict.blocked
+
+    def test_evaluate_sync_with_metadata(self):
+        audit = MagicMock(spec=AuditClient)
+        audit.include_payload = False
+        audit.build_event = MagicMock(return_value={"event_id": "test"})
+        guard = CogniWall(
+            rules=[PiiDetectionRule(block=["ssn"])],
+            audit=audit,
+        )
+        verdict = guard.evaluate({"body": "Hello"}, metadata={"agent_id": "bot-1"})
+        assert not verdict.blocked
+        audit.build_event.assert_called_once()

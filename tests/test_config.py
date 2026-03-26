@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
 from cogniwall.config import load_config, CogniWallConfigError
+from cogniwall.audit import AuditClient
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -122,3 +123,47 @@ class TestRateLimitValidation:
             "rules": [{"type": "rate_limit", "max_actions": 5, "window_seconds": 3600}],
         })
         assert len(result["rules"]) == 1
+
+
+class TestAuditConfigParsing:
+    def test_parse_config_with_audit(self):
+        from cogniwall.config import parse_config
+        result = parse_config({
+            "version": "1",
+            "rules": [],
+            "audit": {
+                "endpoint": "http://localhost:3000/api/events",
+                "include_payload": True,
+                "flush_mode": "sync",
+            },
+        })
+        assert isinstance(result["audit"], AuditClient)
+        assert result["audit"].endpoint == "http://localhost:3000/api/events"
+        assert result["audit"].include_payload is True
+        assert result["audit"].flush_mode == "sync"
+
+    def test_parse_config_without_audit(self):
+        from cogniwall.config import parse_config
+        result = parse_config({"version": "1", "rules": []})
+        assert result["audit"] is None
+
+    def test_audit_missing_endpoint(self):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="endpoint"):
+            parse_config({
+                "version": "1",
+                "rules": [],
+                "audit": {"include_payload": True},
+            })
+
+    def test_audit_invalid_flush_mode(self):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="flush_mode"):
+            parse_config({
+                "version": "1",
+                "rules": [],
+                "audit": {
+                    "endpoint": "http://localhost:3000/api/events",
+                    "flush_mode": "invalid",
+                },
+            })

@@ -42,3 +42,13 @@ rules:
   #   provider: anthropic
   #   model: claude-haiku-4-5-20251001
   #   api_key_env: ANTHROPIC_API_KEY
+
+# Audit Dashboard — send evaluation events to a dashboard
+# Start the dashboard: cd dashboard && npm run dev
+# audit:
+#   endpoint: http://localhost:3000/api/events
+#   # api_key_env: COGNIWALL_AUDIT_KEY
+#   # include_payload: false
+#   # flush_mode: async
+#   # flush_interval: 5.0
+#   # batch_size: 50

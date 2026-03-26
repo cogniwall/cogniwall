@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "cogniwall"
 version = "0.1.0"
 authors = [
-  { name="CogniWall", email="hello@cogniwall.io" },
+  { name="CogniWall", email="cogniwall@gmail.com" },
 ]
 description = "A programmable firewall for autonomous AI agents"
 readme = "README.md"

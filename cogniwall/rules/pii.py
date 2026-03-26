@@ -23,6 +23,14 @@ class PiiDetectionRule(Rule):
         block: list[str] | None = None,
         custom_terms: list[str] | None = None,
     ):
+        if block is not None and not isinstance(block, list):
+            raise TypeError(
+                f"PiiDetectionRule 'block' must be a list, got {type(block).__name__}"
+            )
+        if custom_terms is not None and not isinstance(custom_terms, list):
+            raise TypeError(
+                f"PiiDetectionRule 'custom_terms' must be a list, got {type(custom_terms).__name__}"
+            )
         self.block = block or []
         self.custom_terms = custom_terms or []
 

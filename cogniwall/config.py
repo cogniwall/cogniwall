@@ -116,6 +116,10 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
             raise CogniWallConfigError(
                 "rate_limit rule requires 'max_actions' parameter"
             )
+        if config["max_actions"] <= 0:
+            raise CogniWallConfigError(
+                f"rate_limit 'max_actions' must be positive, got {config['max_actions']}"
+            )
         if "window_seconds" not in config:
             raise CogniWallConfigError(
                 "rate_limit rule requires 'window_seconds' parameter"

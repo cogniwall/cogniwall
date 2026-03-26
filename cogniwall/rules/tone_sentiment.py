@@ -36,7 +36,7 @@ class ToneSentimentRule(Rule):
         try:
             matched_tone = await self._call_llm(value)
             all_tones = self.block + self.custom
-            if matched_tone in all_tones:
+            if matched_tone.lower() in [t.lower() for t in all_tones]:
                 return Verdict.blocked(
                     rule=self.rule_name,
                     reason=f"Tone detected: {matched_tone}",

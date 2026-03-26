@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import time
 from collections import defaultdict
 from typing import Literal
@@ -22,9 +23,26 @@ class Pipeline:
         start = time.perf_counter()
 
         for tier_rules in self.tiers:
-            verdicts = await asyncio.gather(
-                *[rule.evaluate(payload) for rule in tier_rules]
+            results = await asyncio.gather(
+                *[rule.evaluate(copy.deepcopy(payload)) for rule in tier_rules],
+                return_exceptions=True,
             )
+
+            # Convert exceptions to Verdict.error
+            verdicts: list[Verdict] = []
+            for result, rule in zip(results, tier_rules):
+                if isinstance(result, BaseException):
+                    # Let CancelledError propagate (it's a BaseException, not Exception)
+                    if isinstance(result, asyncio.CancelledError):
+                        raise result
+                    verdicts.append(
+                        Verdict.error(
+                            rule=rule.rule_name,
+                            error=result,
+                        )
+                    )
+                else:
+                    verdicts.append(result)
 
             # Handle errors first
             errors = [v for v in verdicts if v.status == "error"]

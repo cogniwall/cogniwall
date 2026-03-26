@@ -5,7 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "cogniwall"
 version = "0.1.0"
+authors = [
+  { name="CogniWall", email="hello@cogniwall.io" },
+]
 description = "A programmable firewall for autonomous AI agents"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",

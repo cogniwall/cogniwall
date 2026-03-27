@@ -20,6 +20,12 @@ pip install -e ".[dev]"
 # Run tests excluding live LLM tests (default behavior)
 .venv/bin/pytest -m "not live_llm"
 
+# Run robustness tests only
+.venv/bin/pytest tests/test_robustness/ tests/test_adversarial_r4.py -v
+
+# Run all adversarial tests (R1-R4)
+.venv/bin/pytest tests/test_adversarial.py tests/test_adversarial_r2.py tests/test_adversarial_r3.py tests/test_adversarial_r4.py -v
+
 # Dashboard (Next.js) commands
 cd dashboard && npm install
 cd dashboard && npm run dev        # Start dev server on :3000
@@ -41,7 +47,7 @@ CogniWall is a Python library that evaluates arbitrary payloads against configur
 
 **Config system:** `config.py` has a `_RULE_REGISTRY` dict mapping YAML type strings to Rule classes. New rules must be added here, plus exported from `rules/__init__.py` and `cogniwall/__init__.py`.
 
-**Shared utilities in `rules/base.py`:** `extract_strings(obj, include_keys=False)` iteratively collects all strings from nested dicts/lists (with circular reference detection). `resolve_field(payload, "dot.path")` navigates nested dicts. Both are public API for custom rules.
+**Shared utilities in `rules/base.py`:** `extract_strings(obj, include_keys=False)` iteratively collects all strings from nested structures (dicts, lists, tuples, sets, deques, bytearrays, memoryviews, generators, dataclasses, and custom iterables) with circular reference detection and max depth of 2000. `resolve_field(payload, "dot.path")` navigates nested dicts (checks literal key first, then dot-notation, navigates through lists). Text normalization functions (`strip_invisible`, `normalize_unicode`, `normalize_for_matching`, `decode_obfuscation`, `leet_normalize`, `try_base64_decode`) are shared by PII and prompt injection rules. All are public API for custom rules.
 
 **Audit system:** `AuditClient` in `audit.py` captures evaluation events and sends them to a dashboard. Configured via `audit=` param on `CogniWall` or `audit:` section in YAML. Fire-and-forget by default (async queue + background flush loop), with sync opt-in. Uses stdlib `urllib.request` only — no external dependencies. The audit path is non-blocking: failures are logged and never affect the verdict.
 
@@ -59,4 +65,10 @@ CogniWall is a Python library that evaluates arbitrary payloads against configur
 
 **Pipeline safety:** `Pipeline.run()` uses `_safe_copy(payload)` (not `copy.deepcopy`) to isolate each rule's view of the payload. `_safe_copy` only handles JSON-serializable types to prevent RCE via `__reduce__`. `asyncio.gather` uses `return_exceptions=True` and converts exceptions to `Verdict.error()`.
 
-**extract_strings safety:** Uses iterative stack-based traversal with `id()`-based visited set for circular reference detection and max depth of 2000. PII rule passes `include_keys=True` to also scan dict keys.
+**extract_strings safety:** Uses iterative stack-based traversal with `id()`-based visited set for circular reference detection and max depth of 2000. Handles bytearray, memoryview, deque, generators, dataclasses, and generic iterables. PII rule passes `include_keys=True` to also scan dict keys.
+
+**Text normalization pipeline:** PII custom term matching uses `normalize_for_matching()` + `casefold()`. Prompt injection pre-filter builds multiple normalization variants (invisible char stripping, NFKD, HTML/URL decoding, leetspeak, homoglyph mapping) and checks all against regex patterns. Base64 decoding is attempted on individual strings.
+
+**Config safety:** `load_config()` uses a custom YAML loader (`_DuplicateKeyLoader`) that detects duplicate keys while supporting YAML merge keys (`<<`). Rate limit `max_actions` is validated as an integer.
+
+**Robustness test structure:** `tests/test_robustness/` contains concurrency, stress, pipeline resilience, and config fuzzing tests. `tests/test_adversarial_r4.py` covers `_safe_copy` DoS, regex ReDoS, and new attack vectors. Tests use `@pytest.mark.xfail` for known limitations (kept green in CI). Shared helpers in `tests/test_robustness/__init__.py`.

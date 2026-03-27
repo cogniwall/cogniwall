@@ -36,18 +36,48 @@ class _DuplicateKeyLoader(yaml.SafeLoader):
     pass
 
 
+def _construct_merge_key(loader, node):
+    """Handle the YAML merge key tag (<<)."""
+    return "<<"
+
+
 def _check_duplicate_keys(loader, node):
     mapping = {}
+    merged_keys: set = set()  # Keys that came from merge (<<), can be overridden
+    explicit_keys: set = set()  # Keys explicitly defined in this mapping
     for key_node, value_node in node.value:
         key = loader.construct_object(key_node)
-        if key in mapping:
+        # Handle YAML merge key (<<) — merge the referenced mapping
+        if key == "<<":
+            if isinstance(value_node, yaml.MappingNode):
+                merged = loader.construct_mapping(value_node)
+                for mk, mv in merged.items():
+                    if mk not in mapping:
+                        mapping[mk] = mv
+                        merged_keys.add(mk)
+            elif isinstance(value_node, yaml.SequenceNode):
+                for subnode in value_node.value:
+                    if isinstance(subnode, yaml.MappingNode):
+                        merged = loader.construct_mapping(subnode)
+                        for mk, mv in merged.items():
+                            if mk not in mapping:
+                                mapping[mk] = mv
+                                merged_keys.add(mk)
+            continue
+        # Explicit keys can override merged keys, but not other explicit keys
+        if key in explicit_keys:
             raise CogniWallConfigError(
                 f"Duplicate key '{key}' found in YAML config"
             )
+        explicit_keys.add(key)
         mapping[key] = loader.construct_object(value_node)
     return mapping
 
 
+_DuplicateKeyLoader.add_constructor(
+    "tag:yaml.org,2002:merge",
+    _construct_merge_key,
+)
 _DuplicateKeyLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     _check_duplicate_keys,

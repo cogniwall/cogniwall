@@ -1110,9 +1110,9 @@ class TestUtilityEdgeCases:
         assert result == "value"
 
     def test_resolve_field_list_intermediate(self):
-        """List in the middle of path returns None."""
+        """List in the middle of path navigates into first element."""
         result = resolve_field({"a": [{"b": "value"}]}, "a.b")
-        assert result is None
+        assert result == "value"
 
     def test_resolve_field_false_value(self):
         """Boolean False value is not None but is falsy."""

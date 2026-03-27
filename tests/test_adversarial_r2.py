@@ -685,15 +685,14 @@ class TestExtractStringsAdvanced:
                 "Should detect cycles or limit depth."
             )
 
-    def test_extract_strings_generator_not_iterated(self):
-        """Generators are not iterated by extract_strings."""
+    def test_extract_strings_generator_iterated(self):
+        """Generators are now iterated by extract_strings."""
 
         def gen():
             yield "secret"
 
         result = extract_strings({"data": gen()})
-        # Generator is not str, bytes, dict, list, tuple, set, or frozenset
-        assert result == [], "Generators are silently ignored (known limitation)"
+        assert "secret" in result, "Generators should be iterated and strings extracted"
 
     def test_extract_strings_ordered_dict(self):
         """OrderedDict should be traversed like a regular dict."""
@@ -1015,10 +1014,10 @@ class TestResolveFieldAdvanced:
     """Advanced edge cases for resolve_field."""
 
     def test_resolve_field_dot_in_key_name(self):
-        """Keys with dots are treated as path separators."""
+        """Keys with dots are now checked as literal keys first."""
         result = resolve_field({"a.b": "value"}, "a.b")
-        # Splits to ["a", "b"], looks for payload["a"]["b"]
-        assert result is None, "Dotted key misinterpreted as path"
+        # Literal key "a.b" found before splitting to ["a", "b"]
+        assert result == "value", "Literal dotted key should be resolved"
 
     def test_resolve_field_empty_segments(self):
         """Path with consecutive dots creates empty segments."""

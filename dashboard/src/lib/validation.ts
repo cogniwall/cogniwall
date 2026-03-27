@@ -35,6 +35,10 @@ export function validateEvents(events: unknown[]): ValidationResult {
       errors.push({ index: i, error: "Missing or invalid timestamp" });
       continue;
     }
+    if (isNaN(new Date(event.timestamp as string).getTime())) {
+      errors.push({ index: i, error: "Invalid timestamp format" });
+      continue;
+    }
     if (!VALID_STATUSES.has(event.status as string)) {
       errors.push({ index: i, error: `Invalid status: ${event.status}` });
       continue;

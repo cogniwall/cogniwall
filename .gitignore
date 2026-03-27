@@ -62,6 +62,13 @@ cover/
 # Internal tooling / local scripts
 docs/superpowers/
 init-dashboard.sh
+.worktrees/
+
+# Content Engine agent
+agents/content_engine/.processed_urls.json
+blog_output/
+client_secrets.json
+blogger_token.json
 
 # Environments
 .env

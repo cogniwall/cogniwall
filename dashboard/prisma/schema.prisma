@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuditEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventId   String   @unique @map("event_id") @db.Uuid
+  timestamp DateTime @db.Timestamptz()
+  status    String
+  rule      String?
+  reason    String?
+  details   Json?
+  elapsedMs Float    @map("elapsed_ms")
+  payload   Json?
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@index([timestamp(sort: Desc)])
+  @@index([status])
+  @@index([rule])
+  @@map("audit_events")
+}

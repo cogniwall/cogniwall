@@ -26,10 +26,11 @@ export default async function EventLogPage({
         <EventFilters />
       </Suspense>
       <EventTable
-        events={result.events as any}
+        events={result.events}
         total={result.total}
         page={result.page}
         pages={result.pages}
+        searchParams={params}
       />
     </div>
   );

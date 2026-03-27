@@ -12,8 +12,18 @@ export interface EventListParams {
   eventId?: string;
 }
 
+function parseDate(value: string | undefined): Date | undefined {
+  if (!value) return undefined;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return undefined;
+  return d;
+}
+
 export async function queryEvents(params: EventListParams) {
-  const { status, rule, from, to, search, page = 1, limit = 50, eventId } = params;
+  const { status, rule, from, to, search, page = 1, limit, eventId } = params;
+
+  // Cap limit: minimum 1, maximum 500, default 50
+  const effectiveLimit = Math.min(Math.max(1, limit ?? 50), 500);
 
   if (eventId) {
     const event = await prisma.auditEvent.findUnique({
@@ -26,10 +36,12 @@ export async function queryEvents(params: EventListParams) {
 
   if (status) where.status = status;
   if (rule) where.rule = rule;
-  if (from || to) {
+  const fromDate = parseDate(from);
+  const toDate = parseDate(to);
+  if (fromDate || toDate) {
     where.timestamp = {};
-    if (from) where.timestamp.gte = new Date(from);
-    if (to) where.timestamp.lte = new Date(to);
+    if (fromDate) where.timestamp.gte = fromDate;
+    if (toDate) where.timestamp.lte = toDate;
   }
   if (search) {
     where.OR = [
@@ -38,13 +50,13 @@ export async function queryEvents(params: EventListParams) {
     ];
   }
 
-  const skip = (page - 1) * limit;
+  const skip = (page - 1) * effectiveLimit;
   const [events, total] = await Promise.all([
     prisma.auditEvent.findMany({
       where,
       orderBy: { timestamp: "desc" },
       skip,
-      take: limit,
+      take: effectiveLimit,
     }),
     prisma.auditEvent.count({ where }),
   ]);
@@ -53,9 +65,12 @@ export async function queryEvents(params: EventListParams) {
     events,
     total,
     page,
-    pages: Math.ceil(total / limit),
+    pages: Math.ceil(total / effectiveLimit),
   };
 }
+
+// Only these three values are ever used — validated explicitly before interpolation.
+const VALID_INTERVALS = new Set(["hour", "day", "week"]);
 
 export async function queryAnalytics(params: {
   from?: string;
@@ -63,15 +78,12 @@ export async function queryAnalytics(params: {
   interval?: "hour" | "day" | "week";
 }) {
   const now = new Date();
-  const fromDate = params.from ? new Date(params.from) : new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const toDate = params.to ? new Date(params.to) : now;
-  const interval = params.interval || "hour";
+  const fromDate = parseDate(params.from) ?? new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const toDate = parseDate(params.to) ?? now;
 
-  const truncFn = interval === "hour"
-    ? "date_trunc('hour', timestamp)"
-    : interval === "day"
-    ? "date_trunc('day', timestamp)"
-    : "date_trunc('week', timestamp)";
+  // Validate interval against whitelist before use in raw SQL
+  const rawInterval = params.interval ?? "hour";
+  const validInterval = VALID_INTERVALS.has(rawInterval) ? rawInterval : "hour";
 
   const [summary, overTime, topRules, topAgents] = await Promise.all([
     prisma.auditEvent.groupBy({
@@ -79,8 +91,9 @@ export async function queryAnalytics(params: {
       where: { timestamp: { gte: fromDate, lte: toDate } },
       _count: true,
     }),
+    // validInterval is guaranteed to be one of "hour" | "day" | "week" by the whitelist check above.
     prisma.$queryRawUnsafe<{ bucket: Date; status: string; count: bigint }[]>(
-      `SELECT ${truncFn} as bucket, status, COUNT(*) as count
+      `SELECT date_trunc('${validInterval}', timestamp) as bucket, status, COUNT(*) as count
        FROM audit_events
        WHERE timestamp >= $1 AND timestamp <= $2
        GROUP BY bucket, status

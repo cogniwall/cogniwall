@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { Prisma } from "@prisma/client";
 
 interface AuditEvent {
   id: string;
   eventId: string;
-  timestamp: string;
+  timestamp: Date | string;
   status: string;
   rule: string | null;
   reason: string | null;
   elapsedMs: number;
-  metadata: Record<string, unknown> | null;
+  metadata: Prisma.JsonValue | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -18,13 +19,25 @@ const statusColors: Record<string, string> = {
 };
 
 export function EventTable({
-  events, total, page, pages,
+  events, total, page, pages, searchParams,
 }: {
   events: AuditEvent[];
   total: number;
   page: number;
   pages: number;
+  searchParams?: Record<string, string | undefined>;
 }) {
+  const buildPageUrl = (targetPage: number) => {
+    const urlParams = new URLSearchParams();
+    if (searchParams) {
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (value && key !== "page") urlParams.set(key, value);
+      });
+    }
+    urlParams.set("page", String(targetPage));
+    return `/?${urlParams.toString()}`;
+  };
+
   return (
     <div>
       <div className="border border-zinc-800 rounded-lg overflow-hidden">
@@ -55,7 +68,9 @@ export function EventTable({
                 <td className="px-4 py-3 text-zinc-300">{event.rule || "—"}</td>
                 <td className="px-4 py-3 text-zinc-400 max-w-xs truncate">{event.reason || "—"}</td>
                 <td className="px-4 py-3 text-zinc-400 font-mono text-xs">
-                  {(event.metadata as Record<string, string>)?.agent_id || "—"}
+                  {(event.metadata !== null && typeof event.metadata === "object" && !Array.isArray(event.metadata) && typeof (event.metadata as Record<string, Prisma.JsonValue>).agent_id === "string"
+                    ? (event.metadata as Record<string, string>).agent_id
+                    : "—")}
                 </td>
                 <td className="px-4 py-3 text-right text-zinc-400 font-mono text-xs">
                   {event.elapsedMs.toFixed(1)}ms
@@ -74,10 +89,10 @@ export function EventTable({
         <span>Page {page} of {pages} — {total.toLocaleString()} events</span>
         <div className="flex gap-2">
           {page > 1 && (
-            <Link href={`?page=${page - 1}`} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Previous</Link>
+            <Link href={buildPageUrl(page - 1)} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Previous</Link>
           )}
           {page < pages && (
-            <Link href={`?page=${page + 1}`} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Next</Link>
+            <Link href={buildPageUrl(page + 1)} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Next</Link>
           )}
         </div>
       </div>

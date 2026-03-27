@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { PayloadViewer } from "./payload-viewer";
 
 const statusColors: Record<string, string> = {
@@ -9,18 +10,25 @@ const statusColors: Record<string, string> = {
 interface EventDetailProps {
   event: {
     eventId: string;
-    timestamp: string;
+    timestamp: Date | string;
     status: string;
     rule: string | null;
     reason: string | null;
-    details: Record<string, unknown> | null;
+    details: Prisma.JsonValue | null;
     elapsedMs: number;
-    payload: unknown;
-    metadata: Record<string, unknown> | null;
+    payload: Prisma.JsonValue | null;
+    metadata: Prisma.JsonValue | null;
   };
 }
 
+function isJsonObject(value: Prisma.JsonValue | null): value is Record<string, Prisma.JsonValue> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 export function EventDetail({ event }: EventDetailProps) {
+  const metadataObj = isJsonObject(event.metadata) ? event.metadata : null;
+  const detailsObj = isJsonObject(event.details) ? event.details : null;
+
   return (
     <div className="space-y-6">
       <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
@@ -45,7 +53,9 @@ export function EventDetail({ event }: EventDetailProps) {
           </div>
           <div>
             <p className="text-zinc-500">Agent</p>
-            <p className="font-mono text-zinc-300">{(event.metadata as Record<string, string>)?.agent_id || "—"}</p>
+            <p className="font-mono text-zinc-300">
+              {typeof metadataObj?.agent_id === "string" ? metadataObj.agent_id : "—"}
+            </p>
           </div>
         </div>
       </div>
@@ -54,11 +64,11 @@ export function EventDetail({ event }: EventDetailProps) {
         <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
           <h3 className="text-sm font-medium text-zinc-400 mb-3">Reason</h3>
           <p className="text-zinc-200 mb-4">{event.reason}</p>
-          {event.details && (
+          {detailsObj && (
             <div>
               <h4 className="text-sm font-medium text-zinc-400 mb-2">Details</h4>
               <div className="space-y-1">
-                {Object.entries(event.details).map(([key, value]) => (
+                {Object.entries(detailsObj).map(([key, value]) => (
                   <div key={key} className="flex gap-2 text-sm">
                     <span className="text-zinc-500 font-mono">{key}:</span>
                     <span className="text-zinc-300 font-mono">{JSON.stringify(value)}</span>
@@ -72,11 +82,11 @@ export function EventDetail({ event }: EventDetailProps) {
 
       <PayloadViewer payload={event.payload} />
 
-      {event.metadata && Object.keys(event.metadata).length > 0 && (
+      {metadataObj && Object.keys(metadataObj).length > 0 && (
         <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
           <h3 className="text-sm font-medium text-zinc-400 mb-3">Metadata</h3>
           <div className="space-y-1">
-            {Object.entries(event.metadata).map(([key, value]) => (
+            {Object.entries(metadataObj).map(([key, value]) => (
               <div key={key} className="flex gap-2 text-sm">
                 <span className="text-zinc-500 font-mono">{key}:</span>
                 <span className="text-zinc-300 font-mono">{JSON.stringify(value)}</span>

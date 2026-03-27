@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
       });
       accepted = result.count;
     } catch (error) {
+      console.error("Database insert failed:", error);
       return NextResponse.json(
-        { error: "Database insert failed", detail: String(error) },
+        { error: "Database insert failed" },
         { status: 500 }
       );
     }
@@ -68,6 +69,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  if (!checkApiKey(request)) {
+    return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
+  }
+
   const params = request.nextUrl.searchParams;
 
   const result = await queryEvents({

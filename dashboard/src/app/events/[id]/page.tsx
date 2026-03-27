@@ -24,7 +24,7 @@ export default async function EventDrilldownPage({
         <span>/</span>
         <span className="text-zinc-300 font-mono">{id.slice(0, 8)}...</span>
       </div>
-      <EventDetail event={event as any} />
+      <EventDetail event={event} />
     </div>
   );
 }

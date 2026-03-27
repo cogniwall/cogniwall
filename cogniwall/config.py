@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import yaml
 
@@ -155,8 +156,23 @@ def _validate_audit_config(config: dict) -> None:
         raise CogniWallConfigError(
             "audit config requires 'endpoint' parameter"
         )
+    parsed = urlparse(config["endpoint"])
+    if parsed.scheme not in ("http", "https"):
+        raise CogniWallConfigError(
+            f"audit 'endpoint' must use http or https, got '{parsed.scheme}'"
+        )
     flush_mode = config.get("flush_mode", "async")
     if flush_mode not in ("async", "sync"):
         raise CogniWallConfigError(
             f"audit 'flush_mode' must be 'async' or 'sync', got '{flush_mode}'"
+        )
+    flush_interval = config.get("flush_interval", 5.0)
+    if not isinstance(flush_interval, (int, float)) or flush_interval <= 0:
+        raise CogniWallConfigError(
+            f"audit 'flush_interval' must be a positive number, got {flush_interval}"
+        )
+    batch_size = config.get("batch_size", 50)
+    if not isinstance(batch_size, int) or batch_size <= 0:
+        raise CogniWallConfigError(
+            f"audit 'batch_size' must be a positive integer, got {batch_size}"
         )

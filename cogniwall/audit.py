@@ -8,7 +8,6 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 from urllib.request import Request, urlopen
-from urllib.error import URLError
 
 logger = logging.getLogger("cogniwall.audit")
 
@@ -102,8 +101,8 @@ class AuditClient:
         while self._queue:
             self._flush_sync()
 
-    def _post(self, body: str) -> bool:
-        """POST a JSON body to the endpoint. Returns True on success."""
+    def _post(self, body: str) -> None:
+        """POST a JSON body to the endpoint. Raises on failure."""
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["X-CogniWall-Key"] = self.api_key
@@ -113,12 +112,8 @@ class AuditClient:
             headers=headers,
             method="POST",
         )
-        try:
-            with urlopen(req, timeout=10) as resp:
-                return resp.status == 200
-        except (URLError, OSError) as e:
-            logger.warning("Audit POST failed: %s", e)
-            raise
+        with urlopen(req, timeout=10):
+            pass
 
     @classmethod
     def from_config(cls, config: dict) -> AuditClient:

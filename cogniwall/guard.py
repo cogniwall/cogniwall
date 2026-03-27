@@ -13,7 +13,7 @@ from cogniwall.verdict import Verdict
 if TYPE_CHECKING:
     from cogniwall.audit import AuditClient
 
-logger = logging.getLogger("cogniwall.audit")
+logger = logging.getLogger("cogniwall.guard")
 
 
 class CogniWall:
@@ -48,6 +48,8 @@ class CogniWall:
         if not isinstance(payload, dict):
             raise TypeError(f"Payload must be a dict, got {type(payload).__name__}")
         verdict = await self._pipeline.run(payload)
+        if self._audit is not None:
+            await self._audit.start()  # idempotent — has `if self._flush_task is None` guard
         self._try_audit(verdict, payload, metadata)
         return verdict
 
@@ -86,7 +88,7 @@ class CogniWall:
         try:
             event = self._audit.build_event(
                 verdict=verdict,
-                payload=payload if self._audit.include_payload else None,
+                payload=payload,
                 metadata=metadata,
             )
             self._audit.record(event)

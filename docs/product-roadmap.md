@@ -18,30 +18,48 @@ The rule-engine pipeline is given away as an open-source Python library to devel
 - Verdict-based API (approve/block/error)
 - Supports Anthropic and OpenAI as local LLM evaluator providers (Free for developers testing locally)
 
-## Phase 2: Additional Guardrail Modules (Open Source Engine - Current)
+## Phase 2: Additional Guardrail Modules (Open Source Engine - Complete)
 
 **Spec:** `docs/superpowers/specs/2026-03-25-cogniwall-phase2-design.md`
 
 - **Tone/Sentiment Veto** — block AI-generated content that is angry, sarcastic, or creates legal liability.
-- **Custom Python Rules** — public extension API.
-- **Rate Limiting** — in-memory action frequency tracking.
+- **Custom Python Rules** — public extension API (`Rule` ABC + `extract_strings` / `resolve_field` utilities).
+- **Rate Limiting** — in-memory action frequency tracking with per-key isolation.
+- **Security hardening** — two rounds of adversarial testing uncovered and fixed: NaN/Inf financial bypasses, regex evasion via unicode/mixed separators, pipeline crash on rule exceptions, payload mutation between concurrent rules, and recursion bombs in payload traversal.
 
-## Phase 3: Audit Dashboard (The "Visual Hook")
+## Phase 3: Audit Dashboard (The "Visual Hook" - Complete)
 
-The transition from a library to a visual product.
+**Spec:** `docs/superpowers/specs/2026-03-26-phase3-audit-dashboard-design.md`
 
-- Web UI showing all evaluation attempts, blocks, and approvals
-- Filterable by rule, time range, agent, verdict status
-- Block reason drill-down with payload details
-- Analytics: block rate over time, most-triggered rules, top blocked agents
-- Tech stack: Next.js frontend, PostgreSQL for event storage
+The transition from a library to a visual product. Two deliverables: a thin `AuditClient` in the Python SDK and a self-hosted Next.js dashboard.
+
+**Python SDK — AuditClient:**
+- Non-blocking, fire-and-forget event capture (sync opt-in for compliance)
+- Configurable via YAML or Python — follows existing config pattern
+- No new dependencies (stdlib `urllib.request`)
+- Phase 4 upgrade = change one endpoint URL
+
+**Dashboard Service — Next.js + PostgreSQL:**
+- Event log with filtering (status, rule, time range, search)
+- Payload drill-down with collapsible JSON viewer
+- Analytics: block rate over time, top triggered rules, top blocked agents
+- Single deployable (Next.js API routes + Prisma ORM)
+- Docker Compose for one-command self-hosting
+
+**Free vs. Premium split:**
+- Free (self-host): full event log, drill-down, basic analytics (24h), 7-day retention
+- Premium (Cloud): unlimited retention, export, real-time streaming, alerts, multi-tenancy
 
 ## Phase 4: CogniWall Cloud (Hosted SaaS API & Monetization)
 
-The monetization engine. We abstract away the Open Source engine into a high-performance proprietary cloud.
+The monetization engine. Phase 3's `AuditClient(endpoint=...)` pattern means the upgrade path is seamless — developers just point at `api.cogniwall.io` instead of `localhost`.
 
 - Hosted API (`api.cogniwall.io/evaluate`) powered by ultra-fast managed models (e.g., Groq / Mistral-Small) so developers don't have to manage or pay for evaluation models themselves.
-- Tenant isolation, API key management, and global rate limiting across servers.
+- Tenant isolation, API key management (`X-CogniWall-Key` header — plumbing built in Phase 3), and global rate limiting across servers.
+- Real-time WebSocket streaming for live dashboard updates.
+- Alerts / webhooks on block spikes (Slack, email).
+- Payload auto-redaction (automatically mask PII-triggering fields before storage).
+- Configurable data retention (30d/90d/unlimited).
 - **Usage-based pricing:**
   - **Hobbyist:** Free up to 10,000 evaluations/month
   - **Pro:** $99/mo + $0.005/evaluation over 50k
@@ -61,6 +79,10 @@ The monetization engine. We abstract away the Open Source engine into a high-per
 - **Verdict callbacks/webhooks** — real-time alerting on blocked actions.
 - **Cost tracking per evaluation** — track estimated token cost.
 - **Payload redaction** — sanitize PII and pass the modified payload rather than just blocking.
+- **Base64/encoding-aware PII scanning** — detect PII hidden in base64, URL-encoding, or other encodings (identified in adversarial testing).
+- **Per-rule timing breakdown** — currently only whole-pipeline `elapsed_ms` is tracked; per-rule metrics would enable performance profiling in the dashboard.
+- **Event retry / dead letter queue** — AuditClient currently drops events on failure; retry with backoff + local buffer for reliability.
+- **Table partitioning** — partition `audit_events` by month when data volume exceeds ~10M rows.
 
 ---
 
@@ -73,6 +95,11 @@ The monetization engine. We abstract away the Open Source engine into a high-per
 | Pipeline | **Tiered** | Short-circuits cheap regex checks before triggering expensive LLM calls. |
 | Config | **YAML + Python** | YAML for fast onboarding, Python subclassing for power users. |
 | Verdict model | **Return Object** | Least surprising, non-invasive compared to throwing exceptions. |
+| Audit delivery | **Fire-and-forget (async default)** | Zero latency overhead on evaluate(); sync opt-in for compliance. |
+| Audit auth | **Optional API key** | Zero friction for local dev; plumbing ready for Cloud multi-tenancy. |
+| Payload storage | **Opt-in** | Safe default avoids storing sensitive data; developers enable when needed. |
+| Dashboard stack | **Next.js monolith** | Single deployable; API routes + SSR in one process; minimal ops for self-hosters. |
+| Pipeline safety | **deepcopy + return_exceptions** | Adversarial testing proved rules can mutate shared payloads and crash pipelines. |
 
 ---
 
@@ -84,6 +111,14 @@ Because engineering velocity is extremely high (using AI agents), a **Staggered 
 2. **Launch 2: The Visual Demo (Phase 3)** — Launch the interactive dashboard. Focus: Viral marketing (Honeypot) and proving value to non-technical decision-makers.
 3. **Launch 3: Hosted SaaS (Phase 4)** — Massive launch on Product Hunt ("Cloudflare for AI Agents"). Focus: Conversion to Pro/Enterprise tiers.
 4. **Launch 4+: Ecosystem Drops (Phase 5)** — Continuous, targeted mini-launches for specific communities (e.g., n8n forums, Vercel developers).
+
+## Security Posture
+
+Two rounds of adversarial testing (200+ test cases) have hardened the engine:
+
+**Fixed:** NaN/Inf financial bypasses, unicode/mixed-separator regex evasion, pipeline crash on rule exceptions, payload mutation between concurrent rules, deep recursion/circular reference bombs, extract_strings ignoring tuples/sets/bytes, case-sensitive tone matching, config accepting invalid params.
+
+**Known remaining (LOW/design-level):** base64-encoded PII evasion, prompt injection obfuscation (leetspeak, homoglyphs), financial rule type coercion (Decimal, string numerics), split-across-fields attacks. These are tracked in `tests/test_adversarial.py` and `tests/test_adversarial_r2.py`.
 
 ## AI-Driven Marketing Playbook
 

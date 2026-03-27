@@ -1,4 +1,10 @@
-<h1 align="center">CogniWall</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo/cogniwall-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo/cogniwall-logo.svg">
+    <img alt="CogniWall" src="assets/logo/cogniwall-logo.svg" height="60">
+  </picture>
+</p>
 
 <p align="center">
   <strong>Stripe Radar, but for Autonomous AI Agents.</strong><br>

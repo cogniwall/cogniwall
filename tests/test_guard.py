@@ -158,6 +158,7 @@ class TestCogniWallWithAudit:
     def test_evaluate_sync_with_metadata(self):
         audit = MagicMock(spec=AuditClient)
         audit.include_payload = False
+        audit.flush_mode = "sync"
         audit.build_event = MagicMock(return_value={"event_id": "test"})
         guard = CogniWall(
             rules=[PiiDetectionRule(block=["ssn"])],

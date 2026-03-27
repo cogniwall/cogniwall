@@ -708,7 +708,8 @@ rules:
     def test_config_yaml_duplicate_keys(self):
         """YAML spec says duplicate keys are undefined behavior.
         PyYAML silently takes the LAST value. An attacker could hide a
-        malicious config under a duplicate key."""
+        malicious config under a duplicate key.
+        Fix: Config parser detects and rejects duplicate keys."""
         yaml_content = """
 on_error: block
 on_error: approve
@@ -721,21 +722,8 @@ rules:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             f.flush()
-            config = load_config(f.name)
-
-        # PyYAML takes last value for duplicate keys
-        assert config["on_error"] == "approve", (
-            "Duplicate YAML key 'on_error': last value 'approve' wins silently. "
-            "Attacker can hide 'on_error: approve' after 'on_error: block'."
-        )
-        # The financial rule should have max=99999 (last value wins)
-        rule = config["rules"][0]
-        if rule.max_value == 99999:
-            pytest.fail(
-                "Duplicate YAML key 'max': last value 99999 silently overrides 100. "
-                "Attacker can weaken financial limits by appending duplicate keys. "
-                "Config parser should detect and reject duplicate keys."
-            )
+            with pytest.raises(CogniWallConfigError, match="Duplicate key"):
+                load_config(f.name)
 
     def test_config_many_rules_performance(self):
         """DoS: Config with 1000 rules -- does parsing take excessive time?"""

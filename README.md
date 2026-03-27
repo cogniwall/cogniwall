@@ -24,7 +24,7 @@
 
 CogniWall intercepts hallucinations, enforces deterministic limits, and blocks malicious actions *before* they execute in your production system. 
 
-It functions as an open-source, easily configurable pipeline engine that runs both ultra-fast classical regex/deterministic checks and slower LLM-based semantic checks.
+Think of it as a pipeline engine: ultra-fast classical checks (regex, limits) run first, and slower LLM-based semantic checks only run if needed.
 
 ## Features
 
@@ -43,8 +43,12 @@ It functions as an open-source, easily configurable pipeline engine that runs bo
 
 ## 📦 Installation
 
+Requires **Python 3.11+**.
+
 ```bash
-pip install cogniwall
+pip install cogniwall                  # Core rules (PII, financial, rate limit)
+pip install cogniwall[anthropic]       # + Anthropic-powered rules (tone, injection)
+pip install cogniwall[openai]          # + OpenAI-powered rules
 ```
 
 ## 🛠️ Quickstart
@@ -57,7 +61,7 @@ from cogniwall import CogniWall, PiiDetectionRule, FinancialLimitRule, ToneSenti
 # Build a guard with the rules you need
 guard = CogniWall(rules=[
     PiiDetectionRule(block=["ssn", "credit_card"]),
-    FinancialLimitRule(field="amount", max_value=10_000),
+    FinancialLimitRule(field="amount", max=10_000),
     ToneSentimentRule(
         field="body",
         block=["angry", "sarcastic"],
@@ -75,6 +79,8 @@ else:
     # Safe to execute!
     pass
 ```
+
+> Set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in your environment for LLM-powered rules.
 
 Or load rules from YAML:
 
@@ -103,12 +109,13 @@ verdict = guard.evaluate(
 )
 ```
 
-**Start the dashboard:**
+**Start the dashboard** (requires **Node.js 18+** and **Docker**):
 
 ```bash
 cd dashboard
+npm install
+cp .env.example .env             # Configure DATABASE_URL
 docker compose up db -d          # Start PostgreSQL
-cp .env.example .env
 npx prisma migrate dev --name init
 npm run dev                      # http://localhost:3000
 ```
@@ -124,10 +131,10 @@ audit = AuditClient(endpoint="https://api.cogniwall.io/events", api_key="cw_live
 ```
 
 ### Roadmap
-- Phase 1: Core Pipeline & MVP Rules (PII, Financial, Inject)
-- Phase 2: Extendable Python API & Semantic Rules (Tone, Rate Limit)
-- Phase 3: Visual Audit Dashboard (Next.js + PostgreSQL)
-- Phase 4: Hosted SaaS Engine
+- [x] Phase 1: Core Pipeline & MVP Rules (PII, Financial, Inject)
+- [x] Phase 2: Extendable Python API & Semantic Rules (Tone, Rate Limit)
+- [x] Phase 3: Visual Audit Dashboard (Next.js + PostgreSQL)
+- [ ] Phase 4: Hosted SaaS Engine
 
 ## 🤝 Contributing
 

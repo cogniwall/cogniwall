@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+import unicodedata
 
 from cogniwall.rules.base import Rule, resolve_field
 from cogniwall.verdict import Verdict
@@ -17,18 +18,37 @@ class RateLimitRule(Rule):
         window_seconds: float,
         key_field: str | None = None,
     ):
-        self.max_actions = max_actions
+        if isinstance(max_actions, bool):
+            raise TypeError(
+                f"max_actions must be an integer, got {type(max_actions).__name__}"
+            )
+        self.max_actions = int(max_actions) if not isinstance(max_actions, int) else max_actions
         self.window_seconds = window_seconds
         self.key_field = key_field
         self._timestamps: dict[str, list[float]] = {}
         self._lock = asyncio.Lock()
+
+    @staticmethod
+    def _canonicalize_key(value: object) -> str:
+        if isinstance(value, (list, tuple)):
+            try:
+                return str(sorted(value))
+            except TypeError:
+                return str(value)
+        if isinstance(value, (set, frozenset)):
+            try:
+                return str(sorted(value))
+            except TypeError:
+                return str(value)
+        s = str(value)
+        return unicodedata.normalize("NFC", s)
 
     async def evaluate(self, payload: dict) -> Verdict:
         if self.key_field:
             key = resolve_field(payload, self.key_field)
             if key is None:
                 return Verdict.approved()
-            key = str(key)
+            key = self._canonicalize_key(key)
         else:
             key = "__global__"
 

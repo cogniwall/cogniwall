@@ -32,12 +32,36 @@ _RULE_REGISTRY: dict[str, type[Rule]] = {
 _VALID_ON_ERROR = {"error", "block", "approve"}
 
 
+class _DuplicateKeyLoader(yaml.SafeLoader):
+    pass
+
+
+def _check_duplicate_keys(loader, node):
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node)
+        if key in mapping:
+            raise CogniWallConfigError(
+                f"Duplicate key '{key}' found in YAML config"
+            )
+        mapping[key] = loader.construct_object(value_node)
+    return mapping
+
+
+_DuplicateKeyLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _check_duplicate_keys,
+)
+
+
 def load_config(path: str | Path) -> dict[str, Any]:
     """Load and validate an CogniWall YAML config file."""
     path = Path(path)
     with open(path) as f:
         try:
-            raw = yaml.safe_load(f)
+            raw = yaml.load(f, Loader=_DuplicateKeyLoader)
+        except CogniWallConfigError:
+            raise
         except yaml.YAMLError as e:
             raise CogniWallConfigError(f"YAML syntax error in {path}: {e}") from e
 
@@ -136,6 +160,12 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
             raise CogniWallConfigError(
                 "rate_limit rule requires 'max_actions' parameter"
             )
+        if isinstance(config["max_actions"], bool):
+            raise CogniWallConfigError(
+                f"rate_limit 'max_actions' must be an integer, got {type(config['max_actions']).__name__}"
+            )
+        if not isinstance(config["max_actions"], int):
+            config["max_actions"] = int(config["max_actions"])
         if config["max_actions"] <= 0:
             raise CogniWallConfigError(
                 f"rate_limit 'max_actions' must be positive, got {config['max_actions']}"

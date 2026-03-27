@@ -3,13 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validateEvents } from "@/lib/validation";
 import { queryEvents } from "@/lib/queries";
 import { Prisma } from "@prisma/client";
-
-function checkApiKey(request: NextRequest): boolean {
-  const requiredKey = process.env.COGNIWALL_API_KEY;
-  if (!requiredKey) return true;
-  const providedKey = request.headers.get("X-CogniWall-Key");
-  return providedKey === requiredKey;
-}
+import { checkApiKey } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   if (!checkApiKey(request)) {
@@ -27,6 +21,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Body must be a JSON array of events" },
       { status: 400 }
+    );
+  }
+
+  if (body.length > 1000) {
+    return NextResponse.json(
+      { error: "Batch too large, maximum 1000 events per request" },
+      { status: 413 }
     );
   }
 

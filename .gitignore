@@ -59,6 +59,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Internal tooling / local scripts
+docs/superpowers/
+init-dashboard.sh
+
 # Environments
 .env
 .venv

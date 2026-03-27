@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from cogniwall.rules.base import Rule, resolve_field
 from cogniwall.verdict import Verdict
 
@@ -7,6 +9,14 @@ VALID_PRESETS = frozenset({"angry", "sarcastic", "apologetic", "threatening", "d
 
 _TEXT_BOUNDARY = "===USER_TEXT_START==="
 _TEXT_BOUNDARY_END = "===USER_TEXT_END==="
+
+# Patterns that indicate prompt injection targeting the tone LLM
+_TONE_INJECTION_PATTERNS = [
+    re.compile(r"(always|only|must)\s+(respond|reply|answer|say|output)\s+with\s+(NONE|no.match)", re.IGNORECASE),
+    re.compile(r"respond\s+with\s+(exactly\s+)?['\"]?NONE['\"]?", re.IGNORECASE),
+    re.compile(r"(ignore|disregard)\s+(the\s+)?(above|previous|preceding)\s+(text|content|message)", re.IGNORECASE),
+    re.compile(r"the\s+above\s+(text|content)\s+is\s+(a\s+)?test", re.IGNORECASE),
+]
 
 
 class ToneSentimentRule(Rule):
@@ -35,6 +45,16 @@ class ToneSentimentRule(Rule):
         value = resolve_field(payload, self.field)
         if value is None or not isinstance(value, str):
             return Verdict.approved()
+
+        # Pre-screen: if user text contains prompt injection targeting the tone LLM,
+        # block proactively (don't trust the LLM response in this case)
+        for pattern in _TONE_INJECTION_PATTERNS:
+            if pattern.search(value):
+                return Verdict.blocked(
+                    rule=self.rule_name,
+                    reason="Prompt injection detected in tone analysis input",
+                    details={"field": self.field, "detection": "injection_pre_screen"},
+                )
 
         try:
             raw_response = await self._call_llm(value)

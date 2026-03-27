@@ -141,12 +141,14 @@ class TestAuditClientFailureHandling:
         assert len(client._queue) == 0  # events are discarded, not re-queued
         assert len(caplog.records) > 0
 
-    def test_failed_sync_post_does_not_raise(self):
+    def test_failed_sync_post_does_not_raise(self, caplog):
         client = AuditClient(
             endpoint="http://127.0.0.1:1/api/events",
             flush_mode="sync",
         )
-        client.record({"event_id": "a"})
+        with caplog.at_level(logging.WARNING, logger="cogniwall.audit"):
+            client.record({"event_id": "a"})
+        assert len(caplog.records) > 0
 
 
 class TestAuditClientFromConfig:

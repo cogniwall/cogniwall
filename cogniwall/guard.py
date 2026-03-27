@@ -74,6 +74,12 @@ class CogniWall:
         else:
             verdict = asyncio.run(self._pipeline.run(payload))
         self._try_audit(verdict, payload, metadata)
+        # In sync path, manually flush since async loop can't run
+        if self._audit is not None and self._audit.flush_mode == "async":
+            try:
+                self._audit._flush_sync()
+            except Exception:
+                logger.warning("Failed to flush audit events (sync path)", exc_info=True)
         return verdict
 
     def _try_audit(

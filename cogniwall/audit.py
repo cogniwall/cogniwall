@@ -56,7 +56,7 @@ class AuditClient:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "status": verdict.status,
             "rule": verdict.rule,
-            "reason": verdict.reason,
+            "reason": verdict.reason or (str(verdict.error) if verdict.error else None),
             "details": verdict.details,
             "elapsed_ms": verdict.elapsed_ms,
             "payload": payload if self.include_payload else None,

@@ -21,6 +21,36 @@ _INVISIBLE_RE = _re.compile(
 # Leetspeak mapping
 _LEET_MAP = str.maketrans("013457@", "oieasst")
 
+# Common cross-script homoglyphs → ASCII Latin equivalents
+_CONFUSABLE_MAP = str.maketrans({
+    "\u0430": "a",  # Cyrillic а
+    "\u0435": "e",  # Cyrillic е
+    "\u043e": "o",  # Cyrillic о
+    "\u0440": "p",  # Cyrillic р
+    "\u0441": "c",  # Cyrillic с
+    "\u0443": "y",  # Cyrillic у
+    "\u0445": "x",  # Cyrillic х
+    "\u0456": "i",  # Cyrillic і
+    "\u0458": "j",  # Cyrillic ј
+    "\u04bb": "h",  # Cyrillic һ
+    "\u0391": "A",  # Greek Α
+    "\u0392": "B",  # Greek Β
+    "\u0395": "E",  # Greek Ε
+    "\u0396": "Z",  # Greek Ζ
+    "\u0397": "H",  # Greek Η
+    "\u0399": "I",  # Greek Ι
+    "\u039a": "K",  # Greek Κ
+    "\u039c": "M",  # Greek Μ
+    "\u039d": "N",  # Greek Ν
+    "\u039f": "O",  # Greek Ο
+    "\u03a1": "P",  # Greek Ρ
+    "\u03a4": "T",  # Greek Τ
+    "\u03a5": "Y",  # Greek Υ
+    "\u03a7": "X",  # Greek Χ
+    "\u03b1": "a",  # Greek α (intentional: visual confusable)
+    "\u03bf": "o",  # Greek ο
+})
+
 
 def strip_invisible(text: str) -> str:
     """Remove zero-width, null bytes, and other invisible characters."""
@@ -34,8 +64,9 @@ def normalize_unicode(text: str) -> str:
 
 
 def normalize_for_matching(text: str) -> str:
-    """Full normalization pipeline: invisible chars, NFKD, strip combining."""
-    return normalize_unicode(strip_invisible(text))
+    """Full normalization pipeline: invisible chars, NFKD, strip combining, confusables."""
+    text = normalize_unicode(strip_invisible(text))
+    return text.translate(_CONFUSABLE_MAP)
 
 
 def decode_obfuscation(text: str) -> str:

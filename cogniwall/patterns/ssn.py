@@ -7,13 +7,13 @@ import unicodedata
 # Area number (first 3) cannot be 000, 666, or 900-999
 # Allow mixed separators (dash, space, dot, or none) in either position
 _SSN_PATTERN = re.compile(
-    r"(?<!\d)(?!000|666|9\d{2})"  # not preceded by digit; area restrictions
-    r"(\d{3})"                     # area number
-    r"([-\s.]?)"                   # first separator (dash, space, dot, or none)
-    r"(?!00)\d{2}"                 # group number (not 00)
-    r"[-\s.]?"                     # second separator (independent, allows mixed)
-    r"(?!0000)\d{4}"               # serial number (not 0000)
-    r"(?!\d)"                      # not followed by digit
+    r"(?<!\d)(?!000|666|9\d{2})"
+    r"(\d{3})"
+    r"([-\s.,]?)"
+    r"(?!00)\d{2}"
+    r"[-\s.,]?"
+    r"(?!0000)\d{4}"
+    r"(?!\d)"
 )
 
 # Zero-width and invisible Unicode characters to strip before matching
@@ -28,7 +28,8 @@ _UNICODE_DASHES = re.compile(
 
 
 def _normalize_text(text: str) -> str:
-    """Strip invisible chars and normalize unicode dashes to ASCII."""
+    """Strip invisible chars, normalize unicode dashes and digits to ASCII."""
+    text = unicodedata.normalize("NFKD", text)
     text = _INVISIBLE_CHARS.sub("", text)
     text = _UNICODE_DASHES.sub("-", text)
     return text

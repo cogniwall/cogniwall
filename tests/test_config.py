@@ -125,6 +125,57 @@ class TestRateLimitValidation:
         assert len(result["rules"]) == 1
 
 
+class TestProviderValidation:
+    def test_unknown_provider_rejected(self):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="Unknown provider"):
+            parse_config({
+                "version": "1",
+                "rules": [{
+                    "type": "prompt_injection",
+                    "provider": "nonexistent",
+                    "api_key": "sk-test",
+                }],
+            })
+
+    def test_invalid_base_url_type_rejected(self):
+        from cogniwall.config import parse_config
+        with pytest.raises(CogniWallConfigError, match="base_url"):
+            parse_config({
+                "version": "1",
+                "rules": [{
+                    "type": "prompt_injection",
+                    "provider": "openai",
+                    "base_url": 12345,
+                    "api_key": "sk-test",
+                }],
+            })
+
+    def test_valid_provider_accepted(self):
+        from cogniwall.config import parse_config
+        result = parse_config({
+            "version": "1",
+            "rules": [{
+                "type": "prompt_injection",
+                "provider": "openai",
+                "api_key": "sk-test",
+            }],
+        })
+        assert len(result["rules"]) == 1
+
+    def test_valid_base_url_accepted(self):
+        from cogniwall.config import parse_config
+        result = parse_config({
+            "version": "1",
+            "rules": [{
+                "type": "prompt_injection",
+                "provider": "openai",
+                "base_url": "http://127.0.0.1:11434/v1",
+            }],
+        })
+        assert len(result["rules"]) == 1
+
+
 class TestAuditConfigParsing:
     def test_parse_config_with_audit(self):
         from cogniwall.config import parse_config

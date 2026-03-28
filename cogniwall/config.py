@@ -209,6 +209,21 @@ def _validate_rule_config(rule_type: str, config: dict) -> None:
                 f"rate_limit 'window_seconds' must be positive, got {config['window_seconds']}"
             )
 
+    # Validate provider field for LLM rules
+    if rule_type in ("prompt_injection", "tone_sentiment"):
+        from cogniwall.rules.llm_provider import _PROVIDER_REGISTRY
+        provider = config.get("provider", "anthropic")
+        if provider not in _PROVIDER_REGISTRY:
+            raise CogniWallConfigError(
+                f"Unknown provider '{provider}' for {rule_type} rule. "
+                f"Available providers: {sorted(_PROVIDER_REGISTRY)}"
+            )
+        base_url = config.get("base_url")
+        if base_url is not None and not isinstance(base_url, str):
+            raise CogniWallConfigError(
+                f"'base_url' must be a string, got {type(base_url).__name__}"
+            )
+
 
 def _validate_audit_config(config: dict) -> None:
     """Validate the audit configuration section."""

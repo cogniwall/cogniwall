@@ -12,11 +12,17 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/cogniwall/cogniwall/actions/workflows/ci.yml">
+    <img src="https://github.com/cogniwall/cogniwall/actions/workflows/ci.yml/badge.svg" alt="CI">
+  </a>
   <a href="https://github.com/cogniwall/cogniwall/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/cogniwall/cogniwall.svg" alt="License">
   </a>
   <a href="https://pypi.org/project/cogniwall/">
     <img src="https://img.shields.io/pypi/v/cogniwall.svg" alt="PyPI">
+  </a>
+  <a href="https://pypi.org/project/cogniwall/">
+    <img src="https://img.shields.io/pypi/pyversions/cogniwall.svg" alt="Python">
   </a>
 </p>
 
@@ -91,6 +97,35 @@ guard = CogniWall.from_yaml("cogniwall.yaml")
 verdict = guard.evaluate({"body": "Hello world", "amount": 50})
 ```
 
+Example `cogniwall.yaml`:
+
+```yaml
+version: "1"
+on_error: error
+
+rules:
+  - type: pii_detection
+    block: [ssn, credit_card]
+
+  - type: financial_limit
+    field: amount
+    max: 10000
+
+  # LLM-powered rules (requires pip install cogniwall[anthropic])
+  # - type: prompt_injection
+  #   provider: anthropic
+  #   api_key_env: ANTHROPIC_API_KEY
+
+  # - type: tone_sentiment
+  #   field: body
+  #   block: [angry, sarcastic]
+  #   provider: anthropic
+  #   api_key_env: ANTHROPIC_API_KEY
+
+# audit:
+#   endpoint: http://localhost:3000/api/events
+```
+
 ## Audit Dashboard
 
 CogniWall includes a self-hosted dashboard for monitoring your AI agent evaluations in real-time.
@@ -136,9 +171,11 @@ audit = AuditClient(endpoint="https://api.cogniwall.io/events", api_key="cw_live
 - [x] Phase 3: Visual Audit Dashboard (Next.js + PostgreSQL)
 - [ ] Phase 4: Hosted SaaS Engine
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Please see our issue templates for feature requests and bug reports. 
+We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and PR guidelines.
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ## 📝 License
 

@@ -1,6 +1,6 @@
 """CogniWall — a programmable firewall for autonomous AI agents."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from cogniwall.guard import CogniWall
 from cogniwall.verdict import Verdict

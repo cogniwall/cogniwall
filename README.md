@@ -55,6 +55,7 @@ Requires **Python 3.11+**.
 pip install cogniwall                  # Core rules (PII, financial, rate limit)
 pip install cogniwall[anthropic]       # + Anthropic-powered rules (tone, injection)
 pip install cogniwall[openai]          # + OpenAI-powered rules
+pip install cogniwall[gemini]          # + Google Gemini-powered rules
 ```
 
 ## 🛠️ Quickstart
@@ -62,7 +63,7 @@ pip install cogniwall[openai]          # + OpenAI-powered rules
 CogniWall uses a `cogniwall.yaml` to define active rules, or it can be configured programmatically.
 
 ```python
-from cogniwall import CogniWall, PiiDetectionRule, FinancialLimitRule, ToneSentimentRule
+from cogniwall import CogniWall, PiiDetectionRule, FinancialLimitRule, ToneSentimentRule, get_provider
 
 # Build a guard with the rules you need
 guard = CogniWall(rules=[
@@ -71,8 +72,7 @@ guard = CogniWall(rules=[
     ToneSentimentRule(
         field="body",
         block=["angry", "sarcastic"],
-        provider="anthropic",                # or "openai"
-        api_key_env="ANTHROPIC_API_KEY",
+        provider=get_provider({"provider": "anthropic", "api_key_env": "ANTHROPIC_API_KEY"}),
     ),
 ])
 
@@ -86,7 +86,7 @@ else:
     pass
 ```
 
-> Set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in your environment for LLM-powered rules.
+> Set `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` in your environment for LLM-powered rules. For local LLMs (Ollama, OpenClaw, LM Studio), use `provider: openai` with a `base_url` — no API key needed.
 
 Or load rules from YAML:
 
@@ -111,16 +111,22 @@ rules:
     field: amount
     max: 10000
 
-  # LLM-powered rules (requires pip install cogniwall[anthropic])
+  # LLM-powered rules (requires pip install cogniwall[anthropic|openai|gemini])
   # - type: prompt_injection
-  #   provider: anthropic
+  #   provider: anthropic           # or "openai", "gemini"
   #   api_key_env: ANTHROPIC_API_KEY
 
   # - type: tone_sentiment
   #   field: body
   #   block: [angry, sarcastic]
-  #   provider: anthropic
+  #   provider: anthropic           # or "openai", "gemini"
   #   api_key_env: ANTHROPIC_API_KEY
+
+  # Local LLM (Ollama, OpenClaw, LM Studio, vLLM):
+  # - type: prompt_injection
+  #   provider: openai
+  #   base_url: http://127.0.0.1:11434/v1
+  #   model: llama3
 
 # audit:
 #   endpoint: http://localhost:3000/api/events

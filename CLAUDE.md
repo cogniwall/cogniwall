@@ -57,7 +57,7 @@ CogniWall is a Python library that evaluates arbitrary payloads against configur
 
 **Python 3.14 Verdict compat:** `Verdict` factory classmethods (`approved`, `blocked`, `error`) are defined outside the class body and attached after, to avoid a Python 3.14 behavior change where classmethods shadow dataclass fields. Do not move these methods back into the class.
 
-**LLM provider pattern:** `PromptInjectionRule` and `ToneSentimentRule` both use `_call_llm` → `_call_anthropic` / `_call_openai` with lazy imports. Tests mock at the `_call_llm` level.
+**LLM provider pattern:** `LLMProvider` ABC in `rules/llm_provider.py` with built-in `AnthropicProvider`, `OpenAIProvider`, `GeminiProvider`. Rules receive a provider instance via `from_config()` → `get_provider()`. `_PROVIDER_REGISTRY` maps names to classes; `register_provider()` allows custom providers. `OpenAIProvider` accepts `base_url` for local LLM endpoints (Ollama, OpenClaw, etc.). Tests mock at the `_call_llm` level.
 
 **Rate limit state:** `RateLimitRule` uses in-memory `dict[str, list[float]]` with `asyncio.Lock`. State resets on process restart (by design).
 

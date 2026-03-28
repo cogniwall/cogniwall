@@ -4,6 +4,19 @@ All notable changes to CogniWall will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `LLMProvider` abstraction layer with pluggable provider registry
+- Google Gemini provider (`pip install cogniwall[gemini]`)
+- Local LLM support via `base_url` on OpenAI provider (Ollama, OpenClaw, LM Studio, vLLM)
+- `register_provider()` public API for custom LLM providers
+- Config validation for `provider` and `base_url` fields
+
+### Changed
+- `PromptInjectionRule` and `ToneSentimentRule` now accept `LLMProvider` instances instead of provider strings
+- API keys are resolved at config load time (fail-fast) instead of at evaluation time
+
 ## [0.1.0] - 2026-03-25
 
 ### Added

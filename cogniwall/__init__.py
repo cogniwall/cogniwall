@@ -4,6 +4,11 @@ __version__ = "0.1.1"
 
 from cogniwall.guard import CogniWall
 from cogniwall.verdict import Verdict
+from cogniwall.rules.llm_provider import (
+    LLMProvider,
+    register_provider,
+    get_provider,
+)
 from cogniwall.rules.pii import PiiDetectionRule
 from cogniwall.rules.financial import FinancialLimitRule
 from cogniwall.rules.prompt_injection import PromptInjectionRule
@@ -16,6 +21,9 @@ __all__ = [
     "CogniWall",
     "Verdict",
     "AuditClient",
+    "LLMProvider",
+    "register_provider",
+    "get_provider",
     "PiiDetectionRule",
     "FinancialLimitRule",
     "PromptInjectionRule",

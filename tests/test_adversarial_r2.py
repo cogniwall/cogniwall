@@ -1166,8 +1166,8 @@ class TestToneSentimentAdvanced:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="  angry  "):
             v = await rule.evaluate({"body": "I am furious!"})
@@ -1181,8 +1181,8 @@ class TestToneSentimentAdvanced:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(
             rule, "_call_llm", new_callable=AsyncMock,
@@ -1202,8 +1202,8 @@ class TestToneSentimentAdvanced:
         rule = ToneSentimentRule(
             field="body",
             custom=["passive-aggressive"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(
             rule, "_call_llm", new_callable=AsyncMock,
@@ -1218,8 +1218,8 @@ class TestToneSentimentAdvanced:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="NONE") as mock:
             v = await rule.evaluate({"body": ""})

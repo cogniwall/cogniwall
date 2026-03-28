@@ -626,8 +626,8 @@ class TestToneSentimentBypass:
         return ToneSentimentRule(
             field="body",
             block=["angry", "threatening"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
 
     @pytest.mark.asyncio
@@ -668,8 +668,8 @@ class TestToneSentimentBypass:
         rule = ToneSentimentRule(
             field="a.b.c.d.e",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         payload = {"a": {"b": {"c": {"d": {"e": "I'm so angry!"}}}}}
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="angry"):
@@ -682,8 +682,8 @@ class TestToneSentimentBypass:
         rule = ToneSentimentRule(
             field="__class__.__name__",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         # This should just resolve via dict.get(), not attribute access
         v = await rule.evaluate({"__class__": {"__name__": "angry text"}})
@@ -697,8 +697,8 @@ class TestToneSentimentBypass:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="Angry"):
             v = await rule.evaluate({"body": "This is unacceptable!"})

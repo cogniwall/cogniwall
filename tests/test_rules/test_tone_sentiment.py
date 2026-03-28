@@ -1,6 +1,19 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 from cogniwall.rules.tone_sentiment import ToneSentimentRule, VALID_PRESETS
+from cogniwall.rules.llm_provider import LLMProvider
+
+
+class _MockProvider(LLMProvider):
+    """Test provider that never makes real API calls."""
+    provider_name = "mock"
+
+    async def call(self, prompt, model, max_tokens=10):
+        raise RuntimeError("Mock provider should not be called directly")
+
+    @classmethod
+    def from_config(cls, config):
+        return cls()
 
 
 @pytest.fixture
@@ -8,9 +21,8 @@ def tone_rule():
     return ToneSentimentRule(
         field="body",
         block=["angry", "sarcastic"],
-        provider="anthropic",
-        model="claude-haiku-4-5-20251001",
-        api_key="test-key",
+        provider=_MockProvider(),
+        model="test-model",
     )
 
 
@@ -44,8 +56,8 @@ class TestToneCustom:
         rule = ToneSentimentRule(
             field="body",
             custom=["sounds legally liable"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="sounds legally liable"):
             verdict = await rule.evaluate({"body": "We accept full responsibility."})
@@ -58,8 +70,8 @@ class TestToneCustom:
             field="body",
             block=["angry"],
             custom=["promises a timeline"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="promises a timeline"):
             verdict = await rule.evaluate({"body": "We'll have it done by Friday."})
@@ -82,8 +94,8 @@ class TestToneFieldResolution:
         rule = ToneSentimentRule(
             field="message.content",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="angry"):
             verdict = await rule.evaluate({"message": {"content": "I'm furious!"}})
@@ -108,7 +120,7 @@ class TestToneFromConfig:
             "block": ["angry", "sarcastic"],
             "provider": "openai",
             "model": "gpt-4o-mini",
-            "api_key_env": "OPENAI_API_KEY",
+            "api_key": "sk-test",
         })
         assert isinstance(rule, ToneSentimentRule)
         assert rule.field == "body"
@@ -118,6 +130,7 @@ class TestToneFromConfig:
         rule = ToneSentimentRule.from_config({
             "field": "body",
             "custom": ["sounds legally liable"],
+            "api_key": "sk-test",
         })
         assert isinstance(rule, ToneSentimentRule)
 
@@ -125,8 +138,9 @@ class TestToneFromConfig:
         rule = ToneSentimentRule.from_config({
             "field": "body",
             "block": ["angry"],
+            "api_key": "sk-test",
         })
-        assert rule.provider == "anthropic"
+        assert rule.model == "claude-haiku-4-5-20251001"
 
 
 class TestValidPresets:

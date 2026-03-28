@@ -86,7 +86,7 @@ class TestToneSentimentValidation:
         from cogniwall.config import parse_config
         result = parse_config({
             "version": "1",
-            "rules": [{"type": "tone_sentiment", "field": "body", "block": ["angry"], "custom": ["legally liable"]}],
+            "rules": [{"type": "tone_sentiment", "field": "body", "block": ["angry"], "custom": ["legally liable"], "api_key": "sk-test"}],
         })
         assert len(result["rules"]) == 1
 

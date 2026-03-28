@@ -292,7 +292,7 @@ class TestToneSentimentR4:
     @pytest.mark.asyncio
     async def test_tone_field_pointing_to_list(self):
         """When resolve_field returns a list (not str), rule should approve (not crash)."""
-        rule = ToneSentimentRule(field="messages", block=["angry"], api_key="test")
+        rule = ToneSentimentRule(field="messages", block=["angry"], provider=_MockProvider(), model="test-model")
         payload = {"messages": ["hello", "world"]}
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="angry"):
             verdict = await rule.evaluate(payload)
@@ -302,7 +302,7 @@ class TestToneSentimentR4:
     @pytest.mark.asyncio
     async def test_tone_empty_block_and_custom_lists(self):
         """With empty block and custom lists, no tone should ever match."""
-        rule = ToneSentimentRule(field="text", block=[], custom=[], api_key="test")
+        rule = ToneSentimentRule(field="text", block=[], custom=[], provider=_MockProvider(), model="test-model")
         payload = {"text": "I am furious!"}
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="angry"):
             verdict = await rule.evaluate(payload)
@@ -315,7 +315,7 @@ class TestToneSentimentR4:
     @pytest.mark.asyncio
     async def test_tone_llm_returns_unicode_tone(self):
         """LLM returning a Unicode confusable of a blocked tone should still match."""
-        rule = ToneSentimentRule(field="text", block=["angry"], api_key="test")
+        rule = ToneSentimentRule(field="text", block=["angry"], provider=_MockProvider(), model="test-model")
         payload = {"text": "I am furious!"}
         # LLM returns "angry" with a-diaeresis instead of 'a'
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="\u00e4ngry"):

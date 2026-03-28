@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from cogniwall.rules.base import Rule, resolve_field
+from cogniwall.rules.llm_provider import LLMProvider
 from cogniwall.verdict import Verdict
 
 VALID_PRESETS = frozenset({"angry", "sarcastic", "apologetic", "threatening", "dismissive"})
@@ -28,26 +29,20 @@ class ToneSentimentRule(Rule):
         field: str,
         block: list[str] | None = None,
         custom: list[str] | None = None,
-        provider: str = "anthropic",
+        provider: LLMProvider | None = None,
         model: str = "claude-haiku-4-5-20251001",
-        api_key: str | None = None,
-        api_key_env: str | None = None,
     ):
         self.field = field
         self.block = [t for t in (block or []) if t and isinstance(t, str)]
         self.custom = [t for t in (custom or []) if t and isinstance(t, str)]
         self.provider = provider
         self.model = model
-        self.api_key = api_key
-        self.api_key_env = api_key_env
 
     async def evaluate(self, payload: dict) -> Verdict:
         value = resolve_field(payload, self.field)
         if value is None or not isinstance(value, str):
             return Verdict.approved()
 
-        # Pre-screen: if user text contains prompt injection targeting the tone LLM,
-        # block proactively (don't trust the LLM response in this case)
         for pattern in _TONE_INJECTION_PATTERNS:
             if pattern.search(value):
                 return Verdict.blocked(
@@ -86,17 +81,6 @@ class ToneSentimentRule(Rule):
 
     async def _call_llm(self, text: str) -> str:
         """Call the LLM to classify text tone. Returns tone name or 'NONE'."""
-        import os
-
-        api_key = self.api_key
-        if not api_key and self.api_key_env:
-            api_key = os.environ.get(self.api_key_env)
-
-        if not api_key:
-            raise ValueError(
-                f"No API key provided. Set api_key or api_key_env for {self.provider}."
-            )
-
         all_tones = self.block + self.custom
         tone_list = ", ".join(f'"{t}"' for t in all_tones)
 
@@ -110,43 +94,15 @@ class ToneSentimentRule(Rule):
             f"{_TEXT_BOUNDARY}\n{text}\n{_TEXT_BOUNDARY_END}"
         )
 
-        if self.provider == "anthropic":
-            return await self._call_anthropic(api_key, prompt)
-        elif self.provider == "openai":
-            return await self._call_openai(api_key, prompt)
-        else:
-            raise ValueError(f"Unknown provider: {self.provider}")
-
-    async def _call_anthropic(self, api_key: str, prompt: str) -> str:
-        import anthropic
-
-        client = anthropic.AsyncAnthropic(api_key=api_key)
-        response = await client.messages.create(
-            model=self.model,
-            max_tokens=50,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.content[0].text.strip()
-
-    async def _call_openai(self, api_key: str, prompt: str) -> str:
-        import openai
-
-        client = openai.AsyncOpenAI(api_key=api_key)
-        response = await client.chat.completions.create(
-            model=self.model,
-            max_tokens=50,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.choices[0].message.content.strip()
+        return await self.provider.call(prompt, self.model, max_tokens=50)
 
     @classmethod
     def from_config(cls, config: dict) -> ToneSentimentRule:
+        from cogniwall.rules.llm_provider import get_provider
         return cls(
             field=config["field"],
             block=config.get("block", []),
             custom=config.get("custom", []),
-            provider=config.get("provider", "anthropic"),
+            provider=get_provider(config),
             model=config.get("model", "claude-haiku-4-5-20251001"),
-            api_key=config.get("api_key"),
-            api_key_env=config.get("api_key_env"),
         )

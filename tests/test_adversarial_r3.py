@@ -509,8 +509,8 @@ class TestToneSentimentPromptInjection:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
 
         # This payload would trick the LLM into responding "angry"
@@ -551,8 +551,8 @@ class TestToneSentimentPromptInjection:
         rule = ToneSentimentRule(
             field="body",
             block=["angry", "threatening"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
 
         # Angry text with injection to force "NONE" response
@@ -1558,8 +1558,8 @@ class TestToneLlmResponseParsing:
         rule = ToneSentimentRule(
             field="body",
             custom=["NONE"],  # A custom tone named "NONE"
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value="NONE"):
             v = await rule.evaluate({"body": "This is fine."})
@@ -1578,8 +1578,8 @@ class TestToneLlmResponseParsing:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(rule, "_call_llm", new_callable=AsyncMock, return_value=""):
             v = await rule.evaluate({"body": "Hello world"})
@@ -1591,8 +1591,8 @@ class TestToneLlmResponseParsing:
         rule = ToneSentimentRule(
             field="body",
             custom=[""],  # Empty string custom tone
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         # Any LLM response .lower() checked against ["".lower()] = [""]
         # "" in [""] is True for "".lower()
@@ -1611,8 +1611,8 @@ class TestToneLlmResponseParsing:
         rule = ToneSentimentRule(
             field="body",
             block=["angry"],
-            provider="anthropic",
-            api_key="test-key",
+            provider=_MockProvider(),
+            model="test-model",
         )
         with patch.object(
             rule, "_call_llm", new_callable=AsyncMock,

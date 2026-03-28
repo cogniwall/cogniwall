@@ -7,6 +7,12 @@ const statusColors: Record<string, string> = {
   error: "bg-amber-500/20 text-amber-400",
 };
 
+const statusBorders: Record<string, string> = {
+  approved: "border-l-2 border-l-emerald-400",
+  blocked: "border-l-2 border-l-red-400",
+  error: "border-l-2 border-l-amber-400",
+};
+
 interface EventDetailProps {
   event: {
     eventId: string;
@@ -31,29 +37,29 @@ export function EventDetail({ event }: EventDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
+      <div className="bg-slate-900 rounded-lg border border-slate-800 p-6">
         <div className="flex items-center gap-4 mb-4">
           <span className={`px-3 py-1.5 rounded text-sm font-bold ${statusColors[event.status] || ""}`}>
             {event.status.toUpperCase()}
           </span>
-          <span className="font-mono text-sm text-zinc-500">{event.eventId}</span>
+          <span className="font-mono text-sm text-slate-500">{event.eventId}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <p className="text-zinc-500">Timestamp</p>
-            <p className="font-mono text-zinc-300">{new Date(event.timestamp).toLocaleString()}</p>
+            <p className="text-slate-500">Timestamp</p>
+            <p className="font-mono text-slate-300">{new Date(event.timestamp).toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-zinc-500">Rule</p>
-            <p className="text-zinc-300">{event.rule || "—"}</p>
+            <p className="text-slate-500">Rule</p>
+            <p className="text-slate-300">{event.rule || "—"}</p>
           </div>
           <div>
-            <p className="text-zinc-500">Latency</p>
-            <p className="font-mono text-zinc-300">{event.elapsedMs.toFixed(1)}ms</p>
+            <p className="text-slate-500">Latency</p>
+            <p className="font-mono text-slate-300">{event.elapsedMs.toFixed(1)}ms</p>
           </div>
           <div>
-            <p className="text-zinc-500">Agent</p>
-            <p className="font-mono text-zinc-300">
+            <p className="text-slate-500">Agent</p>
+            <p className="font-mono text-slate-300">
               {typeof metadataObj?.agent_id === "string" ? metadataObj.agent_id : "—"}
             </p>
           </div>
@@ -61,17 +67,17 @@ export function EventDetail({ event }: EventDetailProps) {
       </div>
 
       {event.reason && (
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
-          <h3 className="text-sm font-medium text-zinc-400 mb-3">Reason</h3>
-          <p className="text-zinc-200 mb-4">{event.reason}</p>
+        <div className={`bg-slate-900 rounded-lg border border-slate-800 p-6 ${statusBorders[event.status] || ""}`}>
+          <h3 className="text-sm font-medium text-slate-400 mb-3">Reason</h3>
+          <p className="text-slate-200 mb-4">{event.reason}</p>
           {detailsObj && (
             <div>
-              <h4 className="text-sm font-medium text-zinc-400 mb-2">Details</h4>
+              <h4 className="text-sm font-medium text-slate-400 mb-2">Details</h4>
               <div className="space-y-1">
                 {Object.entries(detailsObj).map(([key, value]) => (
                   <div key={key} className="flex gap-2 text-sm">
-                    <span className="text-zinc-500 font-mono">{key}:</span>
-                    <span className="text-zinc-300 font-mono">{JSON.stringify(value)}</span>
+                    <span className="text-slate-500 font-mono">{key}:</span>
+                    <span className="text-slate-300 font-mono">{JSON.stringify(value)}</span>
                   </div>
                 ))}
               </div>
@@ -83,13 +89,13 @@ export function EventDetail({ event }: EventDetailProps) {
       <PayloadViewer payload={event.payload} />
 
       {metadataObj && Object.keys(metadataObj).length > 0 && (
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
-          <h3 className="text-sm font-medium text-zinc-400 mb-3">Metadata</h3>
+        <div className="bg-slate-900 rounded-lg border border-slate-800 p-6">
+          <h3 className="text-sm font-medium text-slate-400 mb-3">Metadata</h3>
           <div className="space-y-1">
             {Object.entries(metadataObj).map(([key, value]) => (
               <div key={key} className="flex gap-2 text-sm">
-                <span className="text-zinc-500 font-mono">{key}:</span>
-                <span className="text-zinc-300 font-mono">{JSON.stringify(value)}</span>
+                <span className="text-slate-500 font-mono">{key}:</span>
+                <span className="text-slate-300 font-mono">{JSON.stringify(value)}</span>
               </div>
             ))}
           </div>

@@ -27,7 +27,7 @@ export function EventFilters() {
   return (
     <div className="flex gap-3 mb-6">
       <select
-        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300"
+        className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300"
         value={searchParams.get("status") || "all"}
         onChange={(e) => updateParam("status", e.target.value)}
       >
@@ -38,7 +38,7 @@ export function EventFilters() {
         ))}
       </select>
       <select
-        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300"
+        className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300"
         value={searchParams.get("rule") || "all"}
         onChange={(e) => updateParam("rule", e.target.value)}
       >
@@ -51,7 +51,7 @@ export function EventFilters() {
       <input
         type="text"
         placeholder="Search by reason, rule, or details..."
-        className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 flex-1"
+        className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 flex-1"
         defaultValue={searchParams.get("search") || ""}
         onKeyDown={(e) => {
           if (e.key === "Enter") {

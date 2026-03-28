@@ -19,11 +19,15 @@ export default async function EventDrilldownPage({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6 text-sm text-zinc-500">
-        <Link href="/" className="hover:text-white">Events</Link>
-        <span>/</span>
-        <span className="text-zinc-300 font-mono">{id.slice(0, 8)}...</span>
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/" className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors">
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          Back to Events
+        </Link>
+        <span className="text-slate-600">|</span>
+        <span className="text-sm text-slate-300 font-mono">Event: {id.slice(0, 8)}</span>
       </div>
+      <h2 className="text-xl font-bold mb-6">Event Detail</h2>
       <EventDetail event={event} />
     </div>
   );

@@ -29,7 +29,18 @@ export async function queryEvents(params: EventListParams) {
     const event = await prisma.auditEvent.findUnique({
       where: { eventId },
     });
-    return event ? { events: [event], total: 1, page: 1, pages: 1 } : { events: [], total: 0, page: 1, pages: 0 };
+    if (!event) return { events: [], total: 0, page: 1, pages: 0, summary: { blocked: 0, errors: 0, avg_latency: 0 } };
+    return {
+      events: [event],
+      total: 1,
+      page: 1,
+      pages: 1,
+      summary: {
+        blocked: event.status === "blocked" ? 1 : 0,
+        errors: event.status === "error" ? 1 : 0,
+        avg_latency: event.elapsedMs,
+      },
+    };
   }
 
   const where: Prisma.AuditEventWhereInput = {};
@@ -51,7 +62,7 @@ export async function queryEvents(params: EventListParams) {
   }
 
   const skip = (page - 1) * effectiveLimit;
-  const [events, total] = await Promise.all([
+  const [events, total, statusCounts, latencyAgg] = await Promise.all([
     prisma.auditEvent.findMany({
       where,
       orderBy: { timestamp: "desc" },
@@ -59,13 +70,32 @@ export async function queryEvents(params: EventListParams) {
       take: effectiveLimit,
     }),
     prisma.auditEvent.count({ where }),
+    prisma.auditEvent.groupBy({
+      by: ["status"],
+      where,
+      _count: true,
+    }),
+    prisma.auditEvent.aggregate({
+      where,
+      _avg: { elapsedMs: true },
+    }),
   ]);
+
+  const counts: Record<string, number> = {};
+  for (const row of statusCounts) {
+    counts[row.status] = row._count;
+  }
 
   return {
     events,
     total,
     page,
     pages: Math.ceil(total / effectiveLimit),
+    summary: {
+      blocked: counts["blocked"] ?? 0,
+      errors: counts["error"] ?? 0,
+      avg_latency: latencyAgg._avg.elapsedMs ?? 0,
+    },
   };
 }
 

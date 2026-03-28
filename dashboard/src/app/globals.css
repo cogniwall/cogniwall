@@ -119,12 +119,21 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-none;
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+  }
+  .recharts-responsive-container,
+  .recharts-responsive-container *,
+  .recharts-wrapper,
+  .recharts-surface,
+  svg:focus,
+  svg *:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
 }

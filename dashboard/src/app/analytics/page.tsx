@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { AnalyticsCards } from "@/components/analytics-cards";
 import { EvaluationsChart } from "@/components/charts/evaluations-chart";
 import { TopRulesChart } from "@/components/charts/top-rules-chart";
 import { TopAgentsChart } from "@/components/charts/top-agents-chart";
+import { TimeRangeSelector } from "@/components/time-range-selector";
 import { queryAnalytics } from "@/lib/queries";
 
 export default async function AnalyticsPage({
@@ -18,7 +20,12 @@ export default async function AnalyticsPage({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Analytics</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Analytics</h2>
+        <Suspense fallback={null}>
+          <TimeRangeSelector />
+        </Suspense>
+      </div>
       <AnalyticsCards summary={data.summary} />
       <EvaluationsChart data={data.over_time} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

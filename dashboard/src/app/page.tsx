@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { EventFilters } from "@/components/event-filters";
 import { EventTable } from "@/components/event-table";
+import { EventSummaryStats } from "@/components/event-summary-stats";
 import { queryEvents } from "@/lib/queries";
 
 export default async function EventLogPage({
@@ -21,7 +22,10 @@ export default async function EventLogPage({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Events</h2>
+      <div className="flex items-baseline gap-3 mb-6">
+        <h2 className="text-2xl font-bold">Events</h2>
+        <span className="text-slate-500 text-sm">· {result.total.toLocaleString()}</span>
+      </div>
       <Suspense fallback={<div>Loading filters...</div>}>
         <EventFilters />
       </Suspense>
@@ -31,7 +35,9 @@ export default async function EventLogPage({
         page={result.page}
         pages={result.pages}
         searchParams={params}
-      />
+      >
+        <EventSummaryStats summary={result.summary} total={result.total} />
+      </EventTable>
     </div>
   );
 }

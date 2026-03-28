@@ -4,16 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "Events", icon: "📋" },
-  { href: "/analytics", label: "Analytics", icon: "📊" },
+  { href: "/", label: "Events", icon: "shield", filled: true },
+  { href: "/analytics", label: "Analytics", icon: "analytics", filled: false },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 min-h-screen bg-zinc-900 border-r border-zinc-800 flex flex-col">
-      <div className="p-6 border-b border-zinc-800">
+    <aside className="w-64 min-h-screen bg-slate-900 border-r border-slate-800 flex flex-col">
+      <div className="p-6 border-b border-slate-800">
         <div className="flex items-center gap-3">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-7 h-7 flex-shrink-0">
             <defs>
@@ -29,7 +29,7 @@ export function Sidebar() {
           </svg>
           <div>
             <h1 className="text-xl font-bold text-white">CogniWall</h1>
-            <p className="text-xs text-zinc-500">Audit Dashboard</p>
+            <p className="text-xs text-slate-500">Audit Dashboard</p>
           </div>
         </div>
       </div>
@@ -45,18 +45,23 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                 isActive
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                  ? "bg-blue-500/10 text-blue-400 font-bold border-l-2 border-blue-400"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
               }`}
             >
-              <span>{item.icon}</span>
+              <span
+                className="material-symbols-outlined text-[20px]"
+                style={item.filled ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                {item.icon}
+              </span>
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <div className="p-4 border-t border-zinc-800">
-        <p className="text-xs text-zinc-600">v0.1.0</p>
+      <div className="p-4 border-t border-slate-800">
+        <p className="text-xs text-slate-600">v0.1.0</p>
       </div>
     </aside>
   );

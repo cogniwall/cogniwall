@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Prisma } from "@prisma/client";
 
 interface AuditEvent {
@@ -19,14 +22,17 @@ const statusColors: Record<string, string> = {
 };
 
 export function EventTable({
-  events, total, page, pages, searchParams,
+  events, total, page, pages, searchParams, children,
 }: {
   events: AuditEvent[];
   total: number;
   page: number;
   pages: number;
   searchParams?: Record<string, string | undefined>;
+  children?: React.ReactNode;
 }) {
+  const router = useRouter();
+
   const buildPageUrl = (targetPage: number) => {
     const urlParams = new URLSearchParams();
     if (searchParams) {
@@ -40,59 +46,58 @@ export function EventTable({
 
   return (
     <div>
-      <div className="border border-zinc-800 rounded-lg overflow-hidden">
+      <div className="border border-slate-800 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-900">
+          <thead className="bg-slate-900">
             <tr>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Timestamp</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Status</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Rule</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Reason</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Agent</th>
-              <th className="text-right px-4 py-3 text-zinc-400 font-medium">Latency</th>
+              <th className="text-left px-4 py-3 text-slate-400 font-medium">Timestamp</th>
+              <th className="text-left px-4 py-3 text-slate-400 font-medium">Status</th>
+              <th className="text-left px-4 py-3 text-slate-400 font-medium">Rule</th>
+              <th className="text-left px-4 py-3 text-slate-400 font-medium">Reason</th>
+              <th className="text-left px-4 py-3 text-slate-400 font-medium">Agent</th>
+              <th className="text-right px-4 py-3 text-slate-400 font-medium">Latency</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-slate-800">
             {events.map((event) => (
-              <tr key={event.id} className="hover:bg-zinc-900/50 transition-colors">
-                <td className="px-4 py-3 font-mono text-xs text-zinc-400">
-                  <Link href={`/events/${event.eventId}`} className="hover:text-white">
-                    {new Date(event.timestamp).toLocaleString()}
-                  </Link>
+              <tr key={event.id} className="hover:bg-slate-800/50 transition-colors cursor-pointer" onClick={() => router.push(`/events/${event.eventId}`)}>
+                <td className="px-4 py-3 font-mono text-xs text-slate-400">
+                  {new Date(event.timestamp).toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[event.status] || ""}`}>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[event.status] || ""}`}>
                     {event.status}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-zinc-300">{event.rule || "—"}</td>
-                <td className="px-4 py-3 text-zinc-400 max-w-xs truncate">{event.reason || "—"}</td>
-                <td className="px-4 py-3 text-zinc-400 font-mono text-xs">
+                <td className="px-4 py-3 text-slate-300">{event.rule || "—"}</td>
+                <td className="px-4 py-3 text-slate-400 max-w-xs truncate">{event.reason || "—"}</td>
+                <td className="px-4 py-3 text-slate-400 font-mono text-xs">
                   {(event.metadata !== null && typeof event.metadata === "object" && !Array.isArray(event.metadata) && typeof (event.metadata as Record<string, Prisma.JsonValue>).agent_id === "string"
                     ? (event.metadata as Record<string, string>).agent_id
                     : "—")}
                 </td>
-                <td className="px-4 py-3 text-right text-zinc-400 font-mono text-xs">
+                <td className="px-4 py-3 text-right text-slate-400 font-mono text-xs">
                   {event.elapsedMs.toFixed(1)}ms
                 </td>
               </tr>
             ))}
             {events.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-zinc-500">No events found</td>
+                <td colSpan={6} className="px-4 py-12 text-center text-slate-500">No events found</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-      <div className="flex justify-between items-center mt-4 text-sm text-zinc-500">
+      {children}
+      <div className="flex justify-between items-center mt-4 text-sm text-slate-500">
         <span>Page {page} of {pages} — {total.toLocaleString()} events</span>
         <div className="flex gap-2">
           {page > 1 && (
-            <Link href={buildPageUrl(page - 1)} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Previous</Link>
+            <Link href={buildPageUrl(page - 1)} className="px-3 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">Previous</Link>
           )}
           {page < pages && (
-            <Link href={buildPageUrl(page + 1)} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700">Next</Link>
+            <Link href={buildPageUrl(page + 1)} className="px-3 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">Next</Link>
           )}
         </div>
       </div>

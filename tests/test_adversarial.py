@@ -132,9 +132,21 @@ from cogniwall.rules.base import Rule, extract_strings, resolve_field
 from cogniwall.rules.financial import FinancialLimitRule
 from cogniwall.rules.pii import PiiDetectionRule
 from cogniwall.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.llm_provider import LLMProvider
 from cogniwall.rules.rate_limit import RateLimitRule
 from cogniwall.rules.tone_sentiment import ToneSentimentRule
 from cogniwall.verdict import Verdict
+
+
+class _MockProvider(LLMProvider):
+    provider_name = "mock"
+
+    async def call(self, prompt, model, max_tokens=10):
+        raise RuntimeError("Mock provider should not be called directly")
+
+    @classmethod
+    def from_config(cls, config):
+        return cls()
 
 
 # ---------------------------------------------------------------------------
@@ -458,7 +470,7 @@ class TestPromptInjectionBypass:
     @pytest.fixture
     def pi_rule(self):
         return PromptInjectionRule(
-            provider="anthropic", model="test-model", api_key="test-key"
+            provider=_MockProvider(), model="test-model"
         )
 
     # --- Regex pre-filter bypass attempts ---

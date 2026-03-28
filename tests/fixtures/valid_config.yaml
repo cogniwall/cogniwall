@@ -14,4 +14,4 @@ rules:
   - type: prompt_injection
     provider: anthropic
     model: claude-haiku-4-5-20251001
-    api_key_env: ANTHROPIC_API_KEY
+    api_key: test-key

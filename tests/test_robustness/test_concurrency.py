@@ -14,7 +14,19 @@ import pytest
 
 from cogniwall import CogniWall, PiiDetectionRule, PromptInjectionRule, RateLimitRule, Verdict
 from cogniwall.audit import AuditClient
+from cogniwall.rules.llm_provider import LLMProvider
 from tests.test_robustness import FlexibleApproveRule, FlexibleBlockRule, FlexibleErrorRule
+
+
+class _MockProvider(LLMProvider):
+    provider_name = "mock"
+
+    async def call(self, prompt, model, max_tokens=10):
+        raise RuntimeError("Mock provider should not be called directly")
+
+    @classmethod
+    def from_config(cls, config):
+        return cls()
 
 
 # ---------------------------------------------------------------------------
@@ -65,7 +77,7 @@ class TestConcurrentEvaluateAsync:
     async def test_concurrent_evaluate_async_with_multi_tier_pipeline(self):
         """PiiDetectionRule (tier 1) + mocked PromptInjectionRule (tier 2). 50 concurrent, all clean, all approved."""
         pii_rule = PiiDetectionRule(block=["ssn"])
-        injection_rule = PromptInjectionRule(provider="anthropic", model="test")
+        injection_rule = PromptInjectionRule(provider=_MockProvider(), model="test")
 
         guard = CogniWall(rules=[pii_rule, injection_rule])
         payload = {"message": "A perfectly normal request about weather."}

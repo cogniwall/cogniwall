@@ -25,9 +25,21 @@ from cogniwall import CogniWall, PiiDetectionRule, FinancialLimitRule, RateLimit
 from cogniwall.pipeline import Pipeline, _safe_copy
 from cogniwall.rules.base import extract_strings
 from cogniwall.rules.prompt_injection import PromptInjectionRule, _INJECTION_PATTERNS
+from cogniwall.rules.llm_provider import LLMProvider
 from cogniwall.rules.tone_sentiment import ToneSentimentRule
 from cogniwall.verdict import Verdict
 from cogniwall.patterns import find_ssns, find_credit_cards, find_emails, find_phones
+
+
+class _MockProvider(LLMProvider):
+    provider_name = "mock"
+
+    async def call(self, prompt, model, max_tokens=10):
+        raise RuntimeError("Mock provider should not be called directly")
+
+    @classmethod
+    def from_config(cls, config):
+        return cls()
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +194,7 @@ class TestPromptInjectionR4:
 
     @pytest.fixture
     def rule(self):
-        return PromptInjectionRule(api_key="test-key")
+        return PromptInjectionRule(provider=_MockProvider())
 
     @pytest.mark.asyncio
     async def test_injection_comment_syntax_evasion(self, rule):

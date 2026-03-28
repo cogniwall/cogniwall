@@ -1,11 +1,24 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 from cogniwall.rules.prompt_injection import PromptInjectionRule
+from cogniwall.rules.llm_provider import LLMProvider
+
+
+class _MockProvider(LLMProvider):
+    """Test provider that never makes real API calls."""
+    provider_name = "mock"
+
+    async def call(self, prompt, model, max_tokens=10):
+        raise RuntimeError("Mock provider should not be called directly")
+
+    @classmethod
+    def from_config(cls, config):
+        return cls()
 
 
 @pytest.fixture
 def pi_rule():
-    return PromptInjectionRule(provider="anthropic", model="claude-haiku-4-5-20251001", api_key="test-key")
+    return PromptInjectionRule(provider=_MockProvider(), model="test-model")
 
 
 class TestRegexPreFilter:
@@ -65,14 +78,12 @@ class TestPromptInjectionFromConfig:
         rule = PromptInjectionRule.from_config({
             "provider": "openai",
             "model": "gpt-4o-mini",
-            "api_key_env": "OPENAI_API_KEY",
+            "api_key": "sk-test",
         })
-        assert rule.provider == "openai"
         assert rule.model == "gpt-4o-mini"
 
     def test_from_config_defaults(self):
-        rule = PromptInjectionRule.from_config({})
-        assert rule.provider == "anthropic"
+        rule = PromptInjectionRule.from_config({"api_key": "sk-test"})
         assert rule.model == "claude-haiku-4-5-20251001"
 
 

@@ -10,6 +10,22 @@ authors = [
 ]
 description = "A programmable firewall for autonomous AI agents"
 readme = "README.md"
+license = "MIT"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: AsyncIO",
+    "Typing :: Typed",
+]
+keywords = ["ai", "guardrails", "firewall", "llm", "prompt-injection", "pii", "ai-safety", "ai-agents"]
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
@@ -24,6 +40,12 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
 ]
+
+[project.urls]
+Homepage = "https://github.com/cogniwall/cogniwall"
+Repository = "https://github.com/cogniwall/cogniwall"
+"Bug Tracker" = "https://github.com/cogniwall/cogniwall/issues"
+Changelog = "https://github.com/cogniwall/cogniwall/blob/main/CHANGELOG.md"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

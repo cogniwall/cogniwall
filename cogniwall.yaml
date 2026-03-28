@@ -21,7 +21,7 @@ rules:
     max: 100
 
   # Block unwanted tone in AI-generated content
-  # Requires: pip install cogniwall[anthropic] or cogniwall[openai]
+  # Requires: pip install cogniwall[anthropic], cogniwall[openai], or cogniwall[gemini]
   # - type: tone_sentiment
   #   field: body
   #   block: [angry, sarcastic, apologetic]
@@ -37,11 +37,27 @@ rules:
   #   key_field: user_id
 
   # Detect prompt injection attacks
-  # Requires: pip install cogniwall[anthropic] or cogniwall[openai]
+  # Requires: pip install cogniwall[anthropic], cogniwall[openai], or cogniwall[gemini]
   # - type: prompt_injection
   #   provider: anthropic
   #   model: claude-haiku-4-5-20251001
   #   api_key_env: ANTHROPIC_API_KEY
+
+  # --- Provider examples ---
+  # OpenAI:
+  #   provider: openai
+  #   model: gpt-4o-mini
+  #   api_key_env: OPENAI_API_KEY
+  #
+  # Gemini:
+  #   provider: gemini
+  #   model: gemini-2.0-flash
+  #   api_key_env: GEMINI_API_KEY
+  #
+  # Local LLM (OpenClaw, Ollama, LM Studio, vLLM):
+  #   provider: openai
+  #   base_url: http://127.0.0.1:11434/v1
+  #   model: llama3
 
 # Audit Dashboard — send evaluation events to a dashboard
 # Start the dashboard: cd dashboard && npm run dev

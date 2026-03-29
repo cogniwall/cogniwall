@@ -60,7 +60,7 @@ coverage.xml
 cover/
 
 # Internal tooling / local scripts
-docs/superpowers/
+docs/
 init-dashboard.sh
 .worktrees/
 
